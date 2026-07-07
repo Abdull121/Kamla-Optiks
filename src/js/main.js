@@ -2,9 +2,73 @@ import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
 import { createIcons } from 'lucide';
 import {
-  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye
+  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users
 } from 'lucide';
 import { products, categories, brands } from '../data/mockData.js';
+
+const defaultOrders = [
+  {
+    id: 'KML-20268493',
+    customerName: 'John Doe',
+    email: 'john.doe@example.com',
+    phone: '0300-1234567',
+    address: '123 Luxury Avenue, Gulberg III, Lahore',
+    date: 'July 1, 2026',
+    total: 69720,
+    deliveryCharges: 250,
+    status: 'Delivered',
+    items: [ { name: 'Premium Frame Model 12', qty: 1, price: 69470, image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=200&q=80' } ]
+  },
+  {
+    id: 'KML-20267211',
+    customerName: 'Sarah Smith',
+    email: 'sarah.smith@example.com',
+    phone: '0321-7654321',
+    address: 'Flat 402, Block 17, Gulistan-e-Johar, Karachi',
+    date: 'June 15, 2026',
+    total: 50540,
+    deliveryCharges: 250,
+    status: 'Processing',
+    items: [ { name: 'Premium Frame Model 4', qty: 1, price: 50290, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=200&q=80' } ]
+  },
+  {
+    id: 'KML-20261102',
+    customerName: 'Ali Khan',
+    email: 'ali.khan@example.com',
+    phone: '0333-9876543',
+    address: 'House 14, Sector F-7/2, Islamabad',
+    date: 'June 10, 2026',
+    total: 35000,
+    deliveryCharges: 250,
+    status: 'Pending',
+    items: [ { name: 'Premium Frame Model 8', qty: 1, price: 34750, image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=200&q=80' } ]
+  },
+  {
+    id: 'KML-20260942',
+    customerName: 'Fatima Ahmed',
+    email: 'fatima@example.com',
+    phone: '0345-1122334',
+    address: '54-A, DHA Phase 5, Lahore',
+    date: 'June 05, 2026',
+    total: 24500,
+    deliveryCharges: 250,
+    status: 'Shipped',
+    items: [ { name: 'Premium Frame Model 15', qty: 1, price: 24250, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=200&q=80' } ]
+  },
+  {
+    id: 'KML-20260531',
+    customerName: 'Zainab Bibi',
+    email: 'zainab@example.com',
+    phone: '0312-3456789',
+    address: 'Near Liberty Roundabout, Gulberg, Lahore',
+    date: 'May 28, 2026',
+    total: 18000,
+    deliveryCharges: 250,
+    status: 'Cancelled',
+    items: [ { name: 'Premium Frame Model 20', qty: 1, price: 17750, image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=200&q=80' } ]
+  }
+];
+
 
 window.Alpine = Alpine;
 Alpine.plugin(collapse);
@@ -181,6 +245,34 @@ Alpine.data('checkoutPage', () => ({
     setTimeout(() => {
       this.isProcessing = false;
       this.showSuccess = true;
+      
+      const newOrder = {
+        id: 'KML-' + Math.floor(10000000 + Math.random() * 90000000),
+        customerName: this.form.firstName + ' ' + this.form.lastName,
+        email: this.form.email,
+        phone: this.form.phone,
+        address: this.form.address + ', ' + this.form.city + ' ' + this.form.zip,
+        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        total: this.$store.cart.total + 250,
+        deliveryCharges: 250,
+        status: 'Pending',
+        items: this.$store.cart.items.map(item => ({
+          name: item.name,
+          qty: item.quantity,
+          price: item.price,
+          image: item.image
+        }))
+      };
+
+      try {
+        const saved = localStorage.getItem('kamal_orders');
+        let orders = saved ? JSON.parse(saved) : [...defaultOrders];
+        orders.unshift(newOrder);
+        localStorage.setItem('kamal_orders', JSON.stringify(orders));
+      } catch (e) {
+        console.error("Error saving order:", e);
+      }
+
       this.$store.cart.items = [];
       this.$store.cart.save();
     }, 1500);
@@ -197,10 +289,19 @@ Alpine.data('dashboardPage', () => {
   }
   return {
     activeTab: hash,
-    mockOrders: [
-      { id: 'KML-20268493', date: 'July 1, 2026', total: '69,720', status: 'Delivered', items: [ { name: 'Premium Frame Model 12', qty: 1, image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=200&q=80' } ] },
-      { id: 'KML-20267211', date: 'June 15, 2026', total: '50,540', status: 'Processing', items: [ { name: 'Premium Frame Model 4', qty: 1, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=200&q=80' } ] }
-    ],
+    get mockOrders() {
+      try {
+        const saved = localStorage.getItem('kamal_orders');
+        if (saved) {
+          return JSON.parse(saved);
+        } else {
+          localStorage.setItem('kamal_orders', JSON.stringify(defaultOrders));
+          return defaultOrders;
+        }
+      } catch (e) {
+        return defaultOrders;
+      }
+    },
     logout() {
       alert('Logged out');
       window.location.href = '/';
@@ -216,6 +317,283 @@ Alpine.data('dashboardPage', () => {
     }
   }
 });
+
+Alpine.data('adminPage', () => ({
+  sidebarOpen: false,
+  activeTab: 'dashboard',
+  
+  // Products management state
+  searchQuery: '',
+  isModalOpen: false,
+  editingProduct: null,
+  products: products, 
+  categories: categories,
+  brands: brands,
+  form: {
+    id: null,
+    name: '',
+    categoryId: '',
+    brandId: '',
+    price: '',
+    discountPrice: '',
+    stockQuantity: 10,
+    deliveryCharges: 250,
+    description: '',
+    image: '',
+    inStock: true
+  },
+  page: 1,
+  itemsPerPage: 8,
+  
+  // Orders management state
+  orders: [],
+  ordersPage: 1,
+  ordersItemsPerPage: 8,
+  ordersFilter: 'all',
+  ordersSearchQuery: '',
+  selectedOrder: null,
+  isOrderModalOpen: false,
+
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.filteredProducts.length / this.itemsPerPage));
+  },
+  
+  get paginatedProducts() {
+    const start = (this.page - 1) * this.itemsPerPage;
+    return this.filteredProducts.slice(start, start + this.itemsPerPage);
+  },
+  
+  get filteredProducts() {
+    if (this.searchQuery === '') {
+      return this.products;
+    }
+    const query = this.searchQuery.toLowerCase();
+    return this.products.filter(p => p.name.toLowerCase().includes(query) || (p.brandName && p.brandName.toLowerCase().includes(query)));
+  },
+  
+  // Orders getters
+  get filteredOrders() {
+    let result = this.orders;
+    if (this.ordersFilter !== 'all') {
+      result = result.filter(o => o.status === this.ordersFilter);
+    }
+    if (this.ordersSearchQuery !== '') {
+      const q = this.ordersSearchQuery.toLowerCase();
+      result = result.filter(o => o.id.toLowerCase().includes(q) || o.customerName.toLowerCase().includes(q));
+    }
+    return result;
+  },
+
+  get totalOrdersPages() {
+    return Math.max(1, Math.ceil(this.filteredOrders.length / this.ordersItemsPerPage));
+  },
+
+  get paginatedOrders() {
+    const start = (this.ordersPage - 1) * this.ordersItemsPerPage;
+    return this.filteredOrders.slice(start, start + this.ordersItemsPerPage);
+  },
+  
+  get dashboardStats() {
+    const deliveredRevenue = this.orders
+      .filter(o => o.status === 'Delivered')
+      .reduce((sum, o) => sum + o.total, 0);
+    const lowStock = this.products.filter(p => p.stockQuantity < 15).length;
+    
+    return {
+      revenue: deliveredRevenue,
+      ordersCount: this.orders.length,
+      productsCount: this.products.length,
+      lowStockCount: lowStock
+    };
+  },
+  
+  get recentOrders() {
+    return this.orders.slice(0, 5);
+  },
+  
+  get topSellingProducts() {
+    return [...this.products]
+      .sort((a, b) => b.reviewsCount * b.rating - a.reviewsCount * a.rating)
+      .slice(0, 4);
+  },
+  
+  openModal(product = null) {
+    this.editingProduct = product;
+    if (product) {
+      this.form = {
+        id: product.id,
+        name: product.name || '',
+        categoryId: product.categoryId || '',
+        brandId: product.brandId || '',
+        price: product.price || '',
+        discountPrice: product.discountPrice || '',
+        stockQuantity: product.stockQuantity || 0,
+        deliveryCharges: product.deliveryCharges || 250,
+        description: product.description || '',
+        image: product.image || '',
+        inStock: product.inStock !== undefined ? product.inStock : true
+      };
+    } else {
+      this.form = {
+        id: null,
+        name: '',
+        categoryId: '',
+        brandId: '',
+        price: '',
+        discountPrice: '',
+        stockQuantity: 10,
+        deliveryCharges: 250,
+        description: '',
+        image: '',
+        inStock: true
+      };
+    }
+    this.isModalOpen = true;
+  },
+  
+  closeModal() {
+    this.isModalOpen = false;
+    this.editingProduct = null;
+  },
+  
+  handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File is too large. Please select an image under 5MB.");
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.form.image = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  },
+  
+  saveProduct() {
+    if (!this.form.name || !this.form.categoryId || !this.form.brandId || !this.form.price || !this.form.image) {
+      alert("Please fill in all required fields and upload an image.");
+      return;
+    }
+    
+    const cat = this.categories.find(c => c.id == this.form.categoryId);
+    const brand = this.brands.find(b => b.id == this.form.brandId);
+    
+    const productData = {
+      ...this.form,
+      price: Number(this.form.price),
+      discountPrice: this.form.discountPrice ? Number(this.form.discountPrice) : null,
+      stockQuantity: Number(this.form.stockQuantity),
+      deliveryCharges: Number(this.form.deliveryCharges),
+      categoryId: Number(this.form.categoryId),
+      brandId: Number(this.form.brandId),
+      categoryName: cat ? cat.name : '',
+      brandName: brand ? brand.name : '',
+      inStock: Number(this.form.stockQuantity) > 0,
+      slug: this.form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      images: [this.form.image],
+      rating: 5.0,
+      reviewsCount: 0,
+      isNew: true,
+      colors: ['Black'],
+      sizes: ['Medium']
+    };
+    
+    if (this.editingProduct) {
+      const index = this.products.findIndex(p => p.id === this.editingProduct.id);
+      if (index !== -1) {
+        this.products[index] = { ...this.products[index], ...productData };
+      }
+    } else {
+      const newId = this.products.length > 0 ? Math.max(...this.products.map(p => p.id)) + 1 : 1;
+      productData.id = newId;
+      this.products.unshift(productData);
+    }
+    
+    localStorage.setItem('kamal_products', JSON.stringify(this.products));
+    this.closeModal();
+    setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+  },
+  
+  deleteProduct(id) {
+    if (confirm("Are you sure you want to delete this product?")) {
+      this.products = this.products.filter(p => p.id !== id);
+      localStorage.setItem('kamal_products', JSON.stringify(this.products));
+    }
+  },
+
+  // Orders Actions
+  openOrderModal(order) {
+    this.selectedOrder = JSON.parse(JSON.stringify(order)); // deep clone
+    this.isOrderModalOpen = true;
+    setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+  },
+
+  closeOrderModal() {
+    this.isOrderModalOpen = false;
+    this.selectedOrder = null;
+  },
+
+  updateOrderStatus(orderId, newStatus) {
+    const index = this.orders.findIndex(o => o.id === orderId);
+    if (index !== -1) {
+      this.orders[index].status = newStatus;
+      localStorage.setItem('kamal_orders', JSON.stringify(this.orders));
+      if (this.selectedOrder && this.selectedOrder.id === orderId) {
+        this.selectedOrder.status = newStatus;
+      }
+      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    }
+  },
+  
+  init() {
+    // Load orders
+    try {
+      const savedOrders = localStorage.getItem('kamal_orders');
+      if (savedOrders) {
+        this.orders = JSON.parse(savedOrders);
+      } else {
+        this.orders = [...defaultOrders];
+        localStorage.setItem('kamal_orders', JSON.stringify(this.orders));
+      }
+    } catch(e) {
+      this.orders = [...defaultOrders];
+    }
+
+    let hash = window.location.hash.replace('#', '');
+    if (['dashboard', 'products', 'orders', 'customers', 'settings'].includes(hash)) {
+      this.activeTab = hash;
+    }
+    this.$watch('activeTab', (value) => { 
+      window.location.hash = value; 
+      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    });
+    this.$watch('page', () => {
+      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    });
+    this.$watch('searchQuery', () => { 
+      this.page = 1; 
+      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    });
+    
+    // Orders watches
+    this.$watch('ordersPage', () => {
+      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    });
+    this.$watch('ordersFilter', () => {
+      this.ordersPage = 1;
+      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    });
+    this.$watch('ordersSearchQuery', () => {
+      this.ordersPage = 1;
+      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    });
+
+    setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+  }
+}));
 
 Alpine.start();
 
@@ -262,7 +640,7 @@ async function performNavigation(url, main, pushState) {
       // Re-initialize icons
       createIcons({
         icons: {
-          ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye
+          ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users
         }
       });
 
@@ -320,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateActiveNavLink(window.location.href);
   createIcons({
     icons: {
-      ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye
+      ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users
     }
   });
 });

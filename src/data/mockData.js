@@ -19,7 +19,7 @@ export const brands = [
   { id: 5, name: 'Tom Ford', slug: 'tom-ford' }
 ];
 
-export const products = Array.from({ length: 50 }).map((_, i) => {
+const generateProducts = () => Array.from({ length: 50 }).map((_, i) => {
   const categoryId = Math.floor(Math.random() * 8) + 1;
   const brandId = Math.floor(Math.random() * 5) + 1;
   const price = (Math.floor(Math.random() * 300) + 50) * 280;
@@ -33,6 +33,7 @@ export const products = Array.from({ length: 50 }).map((_, i) => {
     description: `A luxurious and modern eyewear piece perfect for everyday use. Designed with precision and premium materials.`,
     price: price,
     discountPrice: Math.random() > 0.7 ? Math.round(price * 0.8) : null,
+    deliveryCharges: 250,
     categoryId: categoryId,
     categoryName: categories.find(c => c.id === categoryId)?.name,
     brandId: brandId,
@@ -52,6 +53,22 @@ export const products = Array.from({ length: 50 }).map((_, i) => {
     material: 'Acetate',
     shape: ['Square', 'Round', 'Aviator'][Math.floor(Math.random() * 3)],
     gender: ['Unisex', 'Men', 'Women'][Math.floor(Math.random() * 3)],
-    inStock: true
+    inStock: true,
+    stockQuantity: Math.floor(Math.random() * 50) + 10
   };
 });
+
+let loadedProducts = [];
+try {
+  const saved = localStorage.getItem('kamal_products');
+  if (saved) {
+    loadedProducts = JSON.parse(saved);
+  } else {
+    loadedProducts = generateProducts();
+    localStorage.setItem('kamal_products', JSON.stringify(loadedProducts));
+  }
+} catch(e) {
+  loadedProducts = generateProducts();
+}
+
+export const products = loadedProducts;
