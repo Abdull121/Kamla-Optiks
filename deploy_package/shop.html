@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kamal Optiks | Premium Eyewear</title>
-    <meta name="description" content="Discover premium, modern, and luxury eyewear at Kamal Optiks. Shop prescription glasses, sunglasses, and more." />
+    <title>Shop | Kamal Optiks</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="/src/css/style.css" />
+    <script type="module" crossorigin src="/assets/main-BRWLt8am.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-BSuouIQ0.css">
   </head>
   
   <body class="bg-background text-primary" x-data="{ mobileMenuOpen: false, scrolled: false }">
@@ -32,7 +32,7 @@
           <!-- Logo -->
           <div class="flex-shrink-0 flex items-center">
             <a href="/" class="flex items-center">
-              <img src="/src/assets/kamla-optics-logo.png" alt="Kamal Optiks Logo" class="h-9 md:h-11 object-contain" />
+              <img src="/assets/kamla-optics-logo-HEh5tD4V.png" alt="Kamal Optiks Logo" class="h-9 md:h-11 object-contain" />
             </a>
           </div>
 
@@ -173,172 +173,160 @@
     </div>
 
   
-    <main x-data="homePage">
-      <!-- Hero Section -->
-        <section class="relative h-screen flex items-center justify-center overflow-hidden pt-16" x-data="{
-          slides: [
-            'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=2000&q=80',
-            'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=2000&q=80',
-            'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&w=2000&q=80'
-          ],
-          activeSlide: 0,
-          init() {
-            setInterval(() => {
-              this.activeSlide = (this.activeSlide + 1) % this.slides.length;
-            }, 5000);
-          }
-        }">
-        <div class="absolute inset-0 z-0 overflow-hidden">
-          <div class="flex h-full w-full transition-transform duration-1000 ease-in-out" :style="`transform: translateX(-${activeSlide * 100}%)`">
-            <template x-for="(slide, index) in slides" :key="index">
-              <div class="min-w-full h-full relative">
-                <img :src="slide" alt="Premium Eyewear" class="w-full h-full object-cover object-center filter brightness-[0.85]">
+    <main class="pt-24 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen" x-data="shopPage">
+      
+      <!-- Page Header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <h1 class="text-4xl font-bold font-manrope mb-2">Shop Collection</h1>
+          <p class="text-gray-500">Showing <span x-text="filteredProducts.length"></span> premium products</p>
+        </div>
+        
+        <!-- Mobile Filter Toggle -->
+        <div class="md:hidden flex gap-2">
+          <button @click="mobileFiltersOpen = true" class="flex-1 flex items-center justify-center gap-2 border border-border bg-white py-3 rounded-lg font-medium">
+            <i data-lucide="filter" class="w-4 h-4"></i> Filters
+          </button>
+          <div class="relative flex-1">
+            <select x-model="sortBy" class="w-full appearance-none border border-border bg-white py-3 pl-4 pr-10 rounded-lg font-medium focus:outline-none focus:border-accent">
+              <option value="newest">Newest</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+            <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+          </div>
+        </div>
+        
+        <!-- Desktop Sort -->
+        <div class="hidden md:block relative">
+          <select x-model="sortBy" class="appearance-none border border-border bg-white py-3 pl-4 pr-10 rounded-full font-medium focus:outline-none focus:border-accent min-w-[200px]">
+            <option value="newest">Sort by: Newest</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rating">Highest Rated</option>
+          </select>
+          <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+        </div>
+      </div>
+
+      <div class="flex gap-8">
+        <!-- Sidebar Filters (Desktop) -->
+        <aside class="hidden md:block w-64 flex-shrink-0">
+          <div class="sticky top-24 space-y-8">
+            
+            <!-- Category Filter -->
+            <div>
+              <h3 class="font-bold mb-4 font-manrope">Categories</h3>
+              <div class="space-y-2">
+                <template x-for="category in categories" :key="category.id">
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" :value="category.id" x-model="selectedCategories" class="w-5 h-5 rounded border-gray-300 text-accent focus:ring-accent accent-accent cursor-pointer">
+                    <span class="text-gray-600 group-hover:text-black premium-transition" x-text="category.name"></span>
+                  </label>
+                </template>
+              </div>
+            </div>
+
+            <!-- Brand Filter -->
+            <div>
+              <h3 class="font-bold mb-4 font-manrope">Brands</h3>
+              <div class="space-y-2">
+                <template x-for="brand in brands" :key="brand.id">
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" :value="brand.id" x-model="selectedBrands" class="w-5 h-5 rounded border-gray-300 text-accent focus:ring-accent accent-accent cursor-pointer">
+                    <span class="text-gray-600 group-hover:text-black premium-transition" x-text="brand.name"></span>
+                  </label>
+                </template>
+              </div>
+            </div>
+            
+            <!-- Price Range -->
+            <div>
+              <h3 class="font-bold mb-4 font-manrope">Price Range</h3>
+              <div class="px-2">
+                <input type="range" min="0" max="500" step="10" x-model="maxPrice" class="w-full accent-accent mb-4">
+                <div class="flex justify-between text-sm text-gray-500 font-medium">
+                  <span>Rs. 0</span>
+                  <span x-text="'Rs. ' + maxPrice"></span>
+                </div>
+              </div>
+            </div>
+            
+            <button @click="resetFilters()" class="w-full py-3 border border-border rounded-lg text-sm font-bold hover:bg-gray-50 premium-transition">
+              Reset Filters
+            </button>
+          </div>
+        </aside>
+
+        <!-- Product Grid -->
+        <div class="flex-1">
+          <template x-if="filteredProducts.length === 0">
+            <div class="text-center py-20">
+              <i data-lucide="search" class="w-12 h-12 text-gray-300 mx-auto mb-4"></i>
+              <h3 class="text-xl font-bold mb-2">No products found</h3>
+              <p class="text-gray-500 mb-6">Try adjusting your filters to find what you're looking for.</p>
+              <button @click="resetFilters()" class="bg-black text-white px-6 py-2 rounded-full font-medium">Reset Filters</button>
+            </div>
+          </template>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <template x-for="product in paginatedProducts" :key="product.id">
+              <!-- Product Card -->
+              <div class="bg-white rounded-[16px] overflow-hidden soft-shadow hover-lift group flex flex-col h-full">
+                <div class="relative aspect-[4/3] overflow-hidden bg-gray-100">
+                  <a :href="'/product.html?id=' + product.id">
+                    <img :src="product.image" :alt="product.name" class="w-full h-full object-cover object-center group-hover:scale-105 premium-transition">
+                  </a>
+                  <div class="absolute top-4 left-4 flex flex-col gap-2">
+                    <span x-show="product.isNew" class="bg-black text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">New</span>
+                    <span x-show="product.discountPrice" class="bg-accent text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Sale</span>
+                  </div>
+                  <button @click="$store.wishlist.toggle(product)" class="absolute top-4 right-4 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-500 hover:text-red-500 premium-transition">
+                    <i data-lucide="heart" class="w-5 h-5" :class="$store.wishlist.has(product.id) ? 'fill-red-500 text-red-500' : ''"></i>
+                  </button>
+                  
+                  <div class="absolute bottom-0 left-0 w-full p-4 translate-y-full group-hover:translate-y-0 premium-transition">
+                    <button @click="$store.cart.add(product)" class="w-full bg-white text-black font-bold py-2 md:py-3 rounded-full shadow-lg hover:bg-black hover:text-white premium-transition flex items-center justify-center gap-2 text-sm md:text-base">
+                      <i data-lucide="shopping-cart" class="w-4 h-4"></i> Add to Cart
+                    </button>
+                  </div>
+                </div>
+                <div class="p-5 flex-1 flex flex-col">
+                  <div class="flex items-center gap-1 mb-2">
+                    <i data-lucide="star" class="w-4 h-4 fill-yellow-400 text-yellow-400"></i>
+                    <span class="text-sm font-medium" x-text="product.rating"></span>
+                    <span class="text-sm text-gray-400" x-text="'(' + product.reviewsCount + ')'"></span>
+                  </div>
+                  <a :href="'/product.html?id=' + product.id">
+                    <h3 class="font-bold text-lg mb-1 group-hover:text-accent premium-transition truncate" x-text="product.name"></h3>
+                  </a>
+                  <p class="text-sm text-gray-500 mb-3 truncate" x-text="product.brandName"></p>
+                  <div class="mt-auto flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                      <span class="font-bold text-lg" x-text="'Rs. ' + (product.discountPrice || product.price)"></span>
+                      <span x-show="product.discountPrice" class="text-sm text-gray-400 line-through" x-text="'Rs. ' + product.price"></span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </template>
           </div>
-        </div>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 z-10"></div>
-      
-      <div class="relative z-20 text-center px-4 max-w-4xl mx-auto mt-16">
-        <span class="inline-block py-1 px-3 rounded-full bg-white/20 backdrop-blur-md text-white text-sm font-medium tracking-wider mb-6">NEW COLLECTION 2026</span>
-        <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">See The World In <br/><span class="italic font-light">Luxury</span></h1>
-        <p class="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto drop-shadow-md">Elevate your everyday look with our handcrafted premium eyewear designed for the modern generation.</p>
-        
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a href="/shop.html" class="px-8 py-4 bg-white text-primary rounded-full font-bold w-full sm:w-auto hover:bg-gray-100 hover-lift premium-transition">
-            Shop Collection
-          </a>
-          <a href="#process" class="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-bold w-full sm:w-auto hover:bg-white/10 premium-transition">
-            Our Process
-          </a>
-        </div>
-      </div>
-    </section>
 
-    <!-- Categories Section -->
-    <section class="py-24 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold mb-4">Shop by Category</h2>
-          <p class="text-gray-500">Find the perfect frame for every occasion.</p>
-        </div>
-        
-        <div class="flex overflow-x-auto gap-6 pb-6 snap-x hide-scrollbar" style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
-          <template x-for="category in categories" :key="category.id">
-            <a :href="'/shop.html?category=' + category.slug" class="group relative h-96 w-72 flex-shrink-0 rounded-2xl overflow-hidden hover-lift block snap-center">
-              <img :src="category.image || 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=800&q=80'" :alt="category.name" class="w-full h-full object-cover premium-transition group-hover:scale-105">
-              <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-              <div class="absolute bottom-0 left-0 p-8">
-                <h3 class="text-2xl font-bold text-white mb-2" x-text="category.name"></h3>
-                <p class="text-white/80 group-hover:text-white flex items-center gap-2 premium-transition">Explore <i data-lucide="arrow-right" class="w-4 h-4"></i></p>
-              </div>
-            </a>
-          </template>
-        </div>
-      </div>
-    </section>
-
-    <style>
-      .hide-scrollbar::-webkit-scrollbar { display: none; }
-      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
-    </section>
-
-    <section class="py-24 bg-gray-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-end mb-12">
-          <div>
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">Trending Now</h2>
-            <p class="text-gray-500">Our most popular premium frames this week.</p>
-          </div>
-          <a href="/shop.html" class="hidden md:flex items-center gap-2 font-medium hover:text-accent premium-transition">
-            View All <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          </a>
-        </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <template x-for="product in trendingProducts" :key="product.id">
-            <!-- Product Card -->
-            <div class="bg-white rounded-[16px] overflow-hidden soft-shadow hover-lift group">
-              <div class="relative aspect-square overflow-hidden bg-gray-100">
-                <a :href="'/product.html?id=' + product.id">
-                  <img :src="product.image" :alt="product.name" class="w-full h-full object-cover object-center group-hover:scale-105 premium-transition">
-                </a>
-                <div class="absolute top-4 left-4 flex flex-col gap-2">
-                  <span x-show="product.isNew" class="bg-black text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">New</span>
-                  <span x-show="product.discountPrice" class="bg-accent text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Sale</span>
-                </div>
-                <button @click="$store.wishlist.toggle(product)" class="absolute top-4 right-4 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-500 hover:text-red-500 premium-transition">
-                  <i data-lucide="heart" class="w-5 h-5" :class="$store.wishlist.has(product.id) ? 'fill-red-500 text-red-500' : ''"></i>
-                </button>
-                
-                <!-- Quick Add -->
-                <div class="absolute bottom-0 left-0 w-full p-4 translate-y-full group-hover:translate-y-0 premium-transition">
-                  <button @click="$store.cart.add(product)" class="w-full bg-white text-black font-bold py-3 rounded-full shadow-lg hover:bg-black hover:text-white premium-transition flex items-center justify-center gap-2">
-                    <i data-lucide="shopping-cart" class="w-4 h-4"></i> Add to Cart
-                  </button>
-                </div>
-              </div>
-              <div class="p-5">
-                <div class="flex items-center gap-1 mb-2">
-                  <i data-lucide="star" class="w-4 h-4 fill-yellow-400 text-yellow-400"></i>
-                  <span class="text-sm font-medium" x-text="product.rating"></span>
-                  <span class="text-sm text-gray-400" x-text="'(' + product.reviewsCount + ')'"></span>
-                </div>
-                <a :href="'/product.html?id=' + product.id">
-                  <h3 class="font-bold text-lg mb-1 group-hover:text-accent premium-transition truncate" x-text="product.name"></h3>
-                </a>
-                <p class="text-sm text-gray-500 mb-3 truncate" x-text="product.brandName"></p>
-                <div class="flex items-center gap-3">
-                  <span class="font-bold text-lg" x-text="'Rs. ' + (product.discountPrice || product.price)"></span>
-                  <span x-show="product.discountPrice" class="text-sm text-gray-400 line-through" x-text="'Rs. ' + product.price"></span>
-                </div>
-              </div>
-            </div>
-          </template>
-        </div>
-        
-        <div class="mt-12 text-center md:hidden">
-          <a href="/shop.html" class="inline-flex items-center gap-2 font-medium bg-black text-white px-6 py-3 rounded-full">
-            View All <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Value Proposition -->
-    <section id="process" class="py-24 bg-primary text-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16 max-w-3xl mx-auto">
-          <h2 class="text-3xl md:text-5xl font-bold mb-6 text-white">The Kamal Optiks Difference</h2>
-          <p class="text-gray-400 text-lg">We combine traditional craftsmanship with modern technology to deliver eyewear that perfectly balances style, comfort, and durability.</p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-          <div>
-            <div class="w-20 h-20 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-6">
-              <i data-lucide="shield-check" class="w-10 h-10 text-accent"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-3">Premium Materials</h3>
-            <p class="text-gray-400">Handcrafted Italian acetate and ultra-lightweight titanium frames designed to last a lifetime.</p>
-          </div>
-          <div>
-            <div class="w-20 h-20 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-6">
-              <i data-lucide="check" class="w-10 h-10 text-accent"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-3">Precision Lenses</h3>
-            <p class="text-gray-400">Advanced digital lens surfacing for perfect clarity, with anti-reflective and scratch-resistant coatings standard.</p>
-          </div>
-          <div>
-            <div class="w-20 h-20 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-6">
-              <i data-lucide="truck" class="w-10 h-10 text-accent"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-3">Free Express Delivery</h3>
-            <p class="text-gray-400">Try them on at home. We offer free shipping and hassle-free 30-day returns on all orders.</p>
+          <!-- Pagination -->
+          <div class="mt-12 flex justify-center gap-2" x-show="totalPages > 1">
+            <button @click="page > 1 ? page-- : null" class="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-gray-50 disabled:opacity-50" :disabled="page === 1">
+              <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </button>
+            <template x-for="p in Array.from({length: totalPages}, (_, i) => i + 1)">
+              <button @click="page = p" class="w-10 h-10 rounded-full flex items-center justify-center font-medium" :class="page === p ? 'bg-black text-white' : 'border border-border hover:bg-gray-50'" x-text="p"></button>
+            </template>
+            <button @click="page < totalPages ? page++ : null" class="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-gray-50 disabled:opacity-50" :disabled="page === totalPages">
+              <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
           </div>
         </div>
       </div>
-    </section>
     </main>
 
 
@@ -348,7 +336,7 @@
         <div class="grid grid-cols-1 md:grid-cols-5 gap-12 mb-16">
           <div class="col-span-1 md:col-span-1">
             <a href="/" class="flex items-center mb-6">
-              <img src="/src/assets/kamla-optics-logo.png" alt="Kamal Optiks Logo" class="h-10 md:h-12 object-contain" />
+              <img src="/assets/kamla-optics-logo-HEh5tD4V.png" alt="Kamal Optiks Logo" class="h-10 md:h-12 object-contain" />
             </a>
             <p class="text-gray-500 mb-6">Premium eyewear for the modern generation. Crafted with precision, designed for luxury.</p>
             <div class="flex gap-4">
@@ -424,7 +412,6 @@
     </footer>
 
     <!-- Scripts -->
-    <script type="module" src="/src/js/main.js"></script>
   
     <!-- Floating WhatsApp Button -->
     <a href="https://wa.me/923322573686" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-[90] bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:bg-[#128C7E] hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">

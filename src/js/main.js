@@ -6,7 +6,7 @@ import {
 } from 'lucide';
 import { products, categories, brands } from '../data/mockData.js';
 
-export const USE_REAL_BACKEND = false; // Set to true when deploying to Hostinger
+export const USE_REAL_BACKEND = true; // Set to true when deploying to Hostinger
 export const API_BASE_URL = '/backend/api';
 const defaultOrders = [
   {
@@ -147,27 +147,40 @@ Alpine.store('wishlist', {
 
 // Components
 Alpine.data('homePage', () => ({
+  categories: [],
   trendingProducts: [],
+  isLoading: false,
   async init() {
-    let currentProducts = products;
+    this.isLoading = true;
+    // Start with empty array — do NOT fall back to mock data when real backend is on
+    let currentProducts = USE_REAL_BACKEND ? [] : products;
     if (USE_REAL_BACKEND) {
       try {
-        const res = await fetch(`${API_BASE_URL}/products.php`);
+        const ts = Date.now(); // cache-bust
+        const res = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
         if (res.ok) currentProducts = await res.json();
+        
+        const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
+        if (catRes.ok) this.categories = await catRes.json();
       } catch(e) { console.error(e); }
     } else {
       const saved = localStorage.getItem('kamal_products');
       if (saved) currentProducts = JSON.parse(saved);
     }
-    this.trendingProducts = currentProducts.slice(0, 4);
+    this.trendingProducts = currentProducts.filter(p => p.isTrending || p.is_trending).slice(0, 8);
+    // Only fallback if NOT using real backend
+    if (this.trendingProducts.length === 0 && !USE_REAL_BACKEND) {
+      this.trendingProducts = currentProducts.slice(0, 4);
+    }
+    this.isLoading = false;
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
   }
 }));
 
 Alpine.data('shopPage', () => ({
   mobileFiltersOpen: false,
-  products: products,
-  categories: categories,
+  products: USE_REAL_BACKEND ? [] : products,
+  categories: [],
   brands: brands,
   selectedCategories: [],
   selectedBrands: [],
@@ -211,8 +224,12 @@ Alpine.data('shopPage', () => ({
   async init() {
     if (USE_REAL_BACKEND) {
       try {
-        const res = await fetch(`${API_BASE_URL}/products.php`);
+        const ts = Date.now();
+        const res = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
         if (res.ok) this.products = await res.json();
+        
+        const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
+        if (catRes.ok) this.categories = await catRes.json();
       } catch(e) { console.error(e); }
     } else {
       const saved = localStorage.getItem('kamal_products');
@@ -404,13 +421,27 @@ Alpine.data('adminPage', () => ({
   // Products management state
   searchQuery: '',
   isModalOpen: false,
+  isSubmitting: false,
+  submittingId: null,
   editingProduct: null,
-  products: products, 
-  categories: categories,
+  products: USE_REAL_BACKEND ? [] : products, 
+  categories: [],
   brands: brands,
+  
+  // Category management state
+  isCategoryModalOpen: false,
+  editingCategory: null,
+  categoryForm: {
+    id: null,
+    name: '',
+    slug: '',
+    image: ''
+  },
+  
   form: {
     id: null,
     name: '',
+    sku: '',
     categoryId: '',
     brandId: '',
     price: '',
@@ -419,13 +450,16 @@ Alpine.data('adminPage', () => ({
     deliveryCharges: 250,
     description: '',
     image: '',
-    inStock: true
+    inStock: true,
+    isTrending: false
   },
   page: 1,
   itemsPerPage: 8,
   
+  itemsPerPage: 8,
+  
   // Orders management state
-  orders: [],
+  orders: USE_REAL_BACKEND ? [] : [], // We use empty array if real backend
   ordersPage: 1,
   ordersItemsPerPage: 8,
   ordersFilter: 'all',
@@ -502,6 +536,7 @@ Alpine.data('adminPage', () => ({
       this.form = {
         id: product.id,
         name: product.name || '',
+        sku: product.sku || '',
         categoryId: product.categoryId || '',
         brandId: product.brandId || '',
         price: product.price || '',
@@ -510,12 +545,14 @@ Alpine.data('adminPage', () => ({
         deliveryCharges: product.deliveryCharges || 250,
         description: product.description || '',
         image: product.image || '',
-        inStock: product.inStock !== undefined ? product.inStock : true
+        inStock: product.inStock !== undefined ? product.inStock : true,
+        isTrending: product.isTrending || false
       };
     } else {
       this.form = {
         id: null,
         name: '',
+        sku: '',
         categoryId: '',
         brandId: '',
         price: '',
@@ -524,7 +561,8 @@ Alpine.data('adminPage', () => ({
         deliveryCharges: 250,
         description: '',
         image: '',
-        inStock: true
+        inStock: true,
+        isTrending: false
       };
     }
     this.isModalOpen = true;
@@ -571,6 +609,7 @@ Alpine.data('adminPage', () => ({
       categoryName: cat ? cat.name : '',
       brandName: brand ? brand.name : '',
       inStock: Number(this.form.stockQuantity) > 0,
+      isTrending: this.form.isTrending,
       slug: this.form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       images: [this.form.image],
       rating: 5.0,
@@ -580,13 +619,14 @@ Alpine.data('adminPage', () => ({
       sizes: ['Medium']
     };
     
+    this.isSubmitting = true;
+    
     if (USE_REAL_BACKEND) {
       try {
         let res;
         if (this.editingProduct) {
-          productData.id = this.editingProduct.id;
-          res = await fetch(`${API_BASE_URL}/products.php`, {
-            method: 'PUT',
+          res = await fetch(`${API_BASE_URL}/products.php?_method=PUT`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(productData)
           });
@@ -602,10 +642,12 @@ Alpine.data('adminPage', () => ({
           if (!this.editingProduct) productData.id = data.id;
         } else {
           alert('Failed to save product on server');
+          this.isSubmitting = false;
           return;
         }
       } catch (err) {
         console.error('Save product error:', err);
+        this.isSubmitting = false;
         return;
       }
     }
@@ -626,23 +668,27 @@ Alpine.data('adminPage', () => ({
     if (!USE_REAL_BACKEND) {
       localStorage.setItem('kamal_products', JSON.stringify(this.products));
     }
+    this.isSubmitting = false;
     this.closeModal();
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
   },
   
   async deleteProduct(id) {
     if (confirm("Are you sure you want to delete this product?")) {
+      this.submittingId = id;
       if (USE_REAL_BACKEND) {
         try {
-          const res = await fetch(`${API_BASE_URL}/products.php?id=${id}`, {
-            method: 'DELETE'
+          const res = await fetch(`${API_BASE_URL}/products.php?id=${id}&_method=DELETE`, {
+            method: 'POST'
           });
           if (!res.ok) {
             alert('Failed to delete product from server');
+            this.submittingId = null;
             return;
           }
         } catch (err) {
           console.error("Delete error:", err);
+          this.submittingId = null;
           return;
         }
       }
@@ -651,6 +697,100 @@ Alpine.data('adminPage', () => ({
       if (!USE_REAL_BACKEND) {
         localStorage.setItem('kamal_products', JSON.stringify(this.products));
       }
+      this.submittingId = null;
+    }
+  },
+
+  // Categories CRUD
+  openCategoryModal(category = null) {
+    this.editingCategory = category;
+    if (category) {
+      this.categoryForm = { ...category };
+    } else {
+      this.categoryForm = { id: null, name: '', slug: '', image: '' };
+    }
+    this.isCategoryModalOpen = true;
+  },
+
+  closeCategoryModal() {
+    this.isCategoryModalOpen = false;
+    this.editingCategory = null;
+  },
+
+  handleCategoryImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File is too large."); return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => { this.categoryForm.image = e.target.result; };
+    reader.readAsDataURL(file);
+  },
+
+  async saveCategory() {
+    if (!this.categoryForm.name || !this.categoryForm.slug) {
+      alert("Please provide category name and slug."); return;
+    }
+    this.isSubmitting = true;
+    const catData = { ...this.categoryForm };
+    if (USE_REAL_BACKEND) {
+      try {
+        let res;
+        if (this.editingCategory) {
+          res = await fetch(`${API_BASE_URL}/categories.php?_method=PUT`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(catData)
+          });
+        } else {
+          res = await fetch(`${API_BASE_URL}/categories.php`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(catData)
+          });
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (!this.editingCategory && data.id) catData.id = data.id;
+        } else {
+          alert('Failed to save category'); 
+          this.isSubmitting = false;
+          return;
+        }
+      } catch (err) { 
+        console.error(err); 
+        this.isSubmitting = false;
+        return; 
+      }
+    }
+    
+    if (this.editingCategory) {
+      const idx = this.categories.findIndex(c => c.id === this.editingCategory.id);
+      if (idx !== -1) this.categories[idx] = { ...this.categories[idx], ...catData };
+    } else {
+      if (!USE_REAL_BACKEND) catData.id = Date.now();
+      this.categories.push(catData);
+    }
+    this.isSubmitting = false;
+    this.closeCategoryModal();
+  },
+
+  async deleteCategory(id) {
+    if (confirm("Are you sure you want to delete this category?")) {
+      this.submittingId = 'cat_' + id;
+      if (USE_REAL_BACKEND) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/categories.php?id=${id}&_method=DELETE`, { method: 'POST' });
+          if (!res.ok) { 
+            alert('Failed to delete category'); 
+            this.submittingId = null;
+            return; 
+          }
+        } catch (err) { 
+          console.error(err); 
+          this.submittingId = null;
+          return; 
+        }
+      }
+      this.categories = this.categories.filter(c => c.id !== id);
+      this.submittingId = null;
     }
   },
 
@@ -702,6 +842,9 @@ Alpine.data('adminPage', () => ({
       try {
         const prodRes = await fetch(`${API_BASE_URL}/products.php`);
         if (prodRes.ok) this.products = await prodRes.json();
+        
+        const catRes = await fetch(`${API_BASE_URL}/categories.php`);
+        if (catRes.ok) this.categories = await catRes.json();
         
         const ordRes = await fetch(`${API_BASE_URL}/orders.php`);
         if (ordRes.ok) this.orders = await ordRes.json();

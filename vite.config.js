@@ -17,6 +17,7 @@ export default defineConfig({
         contact: resolve(__dirname, 'contact.html'),
         faq: resolve(__dirname, 'faq.html'),
         dashboard: resolve(__dirname, 'dashboard.html'),
+        admin: resolve(__dirname, 'admin.html'),
       }
     }
   }

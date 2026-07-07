@@ -343,7 +343,7 @@
               <li class="flex justify-between border-b border-gray-200 pb-2"><span class="text-gray-500">Material</span><span class="font-medium" x-text="product.material"></span></li>
               <li class="flex justify-between border-b border-gray-200 pb-2"><span class="text-gray-500">Shape</span><span class="font-medium" x-text="product.shape"></span></li>
               <li class="flex justify-between border-b border-gray-200 pb-2"><span class="text-gray-500">Gender</span><span class="font-medium" x-text="product.gender"></span></li>
-              <li class="flex justify-between pb-2"><span class="text-gray-500">SKU</span><span class="font-medium" x-text="'KML-' + product.id + '99'"></span></li>
+              <li class="flex justify-between pb-2"><span class="text-gray-500">SKU</span><span class="font-medium" x-text="product.sku || ('KO-' + product.id + '00')"></span></li>
             </ul>
           </div>
           <div class="bg-gray-50 p-8 rounded-xl">
