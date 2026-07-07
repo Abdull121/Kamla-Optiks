@@ -19,7 +19,7 @@
   
   
     <!-- Navbar -->
-    <header class="fixed w-full z-50 glass premium-transition" :class="{'py-2': scrolled, 'py-4': !scrolled}" @scroll.window="scrolled = (window.pageYOffset > 20)">
+    <header class="fixed w-full z-50 glass-dark premium-transition" :class="{'py-2': scrolled, 'py-4': !scrolled}" @scroll.window="scrolled = (window.pageYOffset > 20)">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center">
           <!-- Mobile Menu Button -->
@@ -31,7 +31,9 @@
 
           <!-- Logo -->
           <div class="flex-shrink-0 flex items-center">
-            <a href="/" class="text-2xl font-manrope font-bold tracking-tighter text-gradient">KAMAL OPTIKS</a>
+            <a href="/" class="flex items-center">
+              <img src="/src/assets/kamla-optics-logo.png" alt="Kamal Optiks Logo" class="h-9 md:h-11 object-contain" />
+            </a>
           </div>
 
           
@@ -359,7 +361,9 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-5 gap-12 mb-16">
           <div class="col-span-1 md:col-span-1">
-            <a href="/" class="text-2xl font-manrope font-bold tracking-tighter text-gradient mb-6 block">KAMAL OPTIKS</a>
+            <a href="/" class="flex items-center mb-6">
+              <img src="/src/assets/kamla-optics-logo.png" alt="Kamal Optiks Logo" class="h-10 md:h-12 object-contain" />
+            </a>
             <p class="text-gray-500 mb-6">Premium eyewear for the modern generation. Crafted with precision, designed for luxury.</p>
             <div class="flex gap-4">
               <a href="#" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-accent soft-shadow premium-transition">

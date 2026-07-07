@@ -67,4 +67,26 @@
     -webkit-text-fill-color: transparent;
     background-image: linear-gradient(to right, #111111, #4b5563);
   }
+
+  /* Make header elements white for dark background */
+  header.glass-dark a,
+  header.glass-dark button,
+  header.glass-dark i,
+  header.glass-dark span {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  header.glass-dark a:hover,
+  header.glass-dark button:hover,
+  header.glass-dark i:hover {
+    color: #ffffff;
+  }
+
+  header.glass-dark a.hover\:text-accent:hover {
+    color: var(--color-accent) !important;
+  }
+
+  header.glass-dark .hover\:bg-gray-100:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
 }

@@ -6,6 +6,8 @@ import {
 } from 'lucide';
 import { products, categories, brands } from '../data/mockData.js';
 
+export const USE_REAL_BACKEND = false; // Set to true when deploying to Hostinger
+export const API_BASE_URL = '/backend/api';
 const defaultOrders = [
   {
     id: 'KML-20268493',
@@ -145,8 +147,19 @@ Alpine.store('wishlist', {
 
 // Components
 Alpine.data('homePage', () => ({
-  trendingProducts: products.slice(0, 4),
-  init() {
+  trendingProducts: [],
+  async init() {
+    let currentProducts = products;
+    if (USE_REAL_BACKEND) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/products.php`);
+        if (res.ok) currentProducts = await res.json();
+      } catch(e) { console.error(e); }
+    } else {
+      const saved = localStorage.getItem('kamal_products');
+      if (saved) currentProducts = JSON.parse(saved);
+    }
+    this.trendingProducts = currentProducts.slice(0, 4);
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
   }
 }));
@@ -195,7 +208,17 @@ Alpine.data('shopPage', () => ({
     this.sortBy = 'newest';
     this.page = 1;
   },
-  init() {
+  async init() {
+    if (USE_REAL_BACKEND) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/products.php`);
+        if (res.ok) this.products = await res.json();
+      } catch(e) { console.error(e); }
+    } else {
+      const saved = localStorage.getItem('kamal_products');
+      if (saved) this.products = JSON.parse(saved);
+    }
+    
     this.$watch('selectedCategories', () => { this.page = 1; });
     this.$watch('selectedBrands', () => { this.page = 1; });
     this.$watch('maxPrice', () => { this.page = 1; });
@@ -204,48 +227,97 @@ Alpine.data('shopPage', () => ({
   }
 }));
 
-Alpine.data('productPage', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const id = parseInt(urlParams.get('id')) || 1;
-  const product = products.find(p => p.id === id) || products[0];
-  
-  return {
-    product: product,
-    activeImage: product.images[0],
-    selectedColor: product.colors[0],
-    selectedSize: product.sizes[0],
-    quantity: 1,
-    getColorClass(colorName) {
-      const map = {
-        'Black': 'bg-black',
-        'Tortoise': 'bg-[url("https://www.transparenttextures.com/patterns/cubes.png")] bg-amber-900',
-        'Clear': 'bg-gray-100 border border-gray-300'
-      };
-      return map[colorName] || 'bg-gray-500';
-    },
-    addToCart() {
-      const item = { ...this.product };
-      for(let i=0; i<this.quantity; i++){
-        this.$store.cart.add(item);
-      }
-    },
-    init() {
-      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+Alpine.data('productPage', () => ({
+  product: null,
+  activeImage: '',
+  selectedColor: '',
+  selectedSize: '',
+  quantity: 1,
+  getColorClass(colorName) {
+    const map = {
+      'Black': 'bg-black',
+      'Tortoise': 'bg-[url("https://www.transparenttextures.com/patterns/cubes.png")] bg-amber-900',
+      'Clear': 'bg-gray-100 border border-gray-300'
+    };
+    return map[colorName] || 'bg-gray-500';
+  },
+  addToCart() {
+    if (!this.product) return;
+    const item = { ...this.product };
+    for(let i=0; i<this.quantity; i++){
+      this.$store.cart.add(item);
     }
+  },
+  async init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = parseInt(urlParams.get('id')) || 1;
+    let currentProducts = products;
+    
+    if (USE_REAL_BACKEND) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/products.php`);
+        if (res.ok) currentProducts = await res.json();
+      } catch(e) { console.error(e); }
+    } else {
+      const saved = localStorage.getItem('kamal_products');
+      if (saved) currentProducts = JSON.parse(saved);
+    }
+    
+    this.product = currentProducts.find(p => p.id === id) || currentProducts[0];
+    if (this.product) {
+      this.activeImage = this.product.images ? this.product.images[0] : this.product.image;
+      this.selectedColor = this.product.colors ? this.product.colors[0] : 'Black';
+      this.selectedSize = this.product.sizes ? this.product.sizes[0] : 'Medium';
+    }
+    
+    setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
   }
-});
+}));
 
 Alpine.data('checkoutPage', () => ({
   paymentMethod: 'cod',
   isProcessing: false,
   showSuccess: false,
   form: { email: '', firstName: '', lastName: '', address: '', city: '', zip: '', phone: '' },
-  processCheckout() {
+  async processCheckout() {
     this.isProcessing = true;
-    setTimeout(() => {
-      this.isProcessing = false;
-      this.showSuccess = true;
-      
+    
+    if (USE_REAL_BACKEND) {
+      try {
+        const payload = {
+          customer: {
+            fullName: this.form.firstName + ' ' + this.form.lastName,
+            email: this.form.email,
+            phone: this.form.phone,
+            address: this.form.address + ', ' + this.form.city + ' ' + this.form.zip
+          },
+          cart: this.$store.cart.items.map(item => ({
+            id: item.id,
+            qty: item.quantity,
+            price: item.price,
+            lensOption: item.lensOption,
+            prescription: item.prescription
+          })),
+          subtotal: this.$store.cart.total,
+          deliveryCharges: 250,
+          total: this.$store.cart.total + 250
+        };
+        
+        const res = await fetch(`${API_BASE_URL}/checkout.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) throw new Error("Checkout failed on server");
+      } catch (err) {
+        console.error("Checkout error:", err);
+        alert("There was an error processing your order. Please try again.");
+        this.isProcessing = false;
+        return;
+      }
+    } else {
+      // Local mock checkout
       const newOrder = {
         id: 'KML-' + Math.floor(10000000 + Math.random() * 90000000),
         customerName: this.form.firstName + ' ' + this.form.lastName,
@@ -260,19 +332,26 @@ Alpine.data('checkoutPage', () => ({
           name: item.name,
           qty: item.quantity,
           price: item.price,
-          image: item.image
+          image: item.image,
+          lensOption: item.lensOption,
+          prescriptionData: item.prescription
         }))
       };
 
       try {
         const saved = localStorage.getItem('kamal_orders');
-        let orders = saved ? JSON.parse(saved) : [...defaultOrders];
+        let orders = saved ? JSON.parse(saved) : []; // defaultOrders not available in this scope, so use []
         orders.unshift(newOrder);
         localStorage.setItem('kamal_orders', JSON.stringify(orders));
       } catch (e) {
         console.error("Error saving order:", e);
       }
+    }
 
+    // Success for both paths
+    setTimeout(() => {
+      this.isProcessing = false;
+      this.showSuccess = true;
       this.$store.cart.items = [];
       this.$store.cart.save();
     }, 1500);
@@ -472,7 +551,7 @@ Alpine.data('adminPage', () => ({
     reader.readAsDataURL(file);
   },
   
-  saveProduct() {
+  async saveProduct() {
     if (!this.form.name || !this.form.categoryId || !this.form.brandId || !this.form.price || !this.form.image) {
       alert("Please fill in all required fields and upload an image.");
       return;
@@ -487,8 +566,8 @@ Alpine.data('adminPage', () => ({
       discountPrice: this.form.discountPrice ? Number(this.form.discountPrice) : null,
       stockQuantity: Number(this.form.stockQuantity),
       deliveryCharges: Number(this.form.deliveryCharges),
-      categoryId: Number(this.form.categoryId),
-      brandId: Number(this.form.brandId),
+      categoryId: this.form.categoryId,
+      brandId: this.form.brandId,
       categoryName: cat ? cat.name : '',
       brandName: brand ? brand.name : '',
       inStock: Number(this.form.stockQuantity) > 0,
@@ -501,26 +580,77 @@ Alpine.data('adminPage', () => ({
       sizes: ['Medium']
     };
     
+    if (USE_REAL_BACKEND) {
+      try {
+        let res;
+        if (this.editingProduct) {
+          productData.id = this.editingProduct.id;
+          res = await fetch(`${API_BASE_URL}/products.php`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productData)
+          });
+        } else {
+          res = await fetch(`${API_BASE_URL}/products.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productData)
+          });
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (!this.editingProduct) productData.id = data.id;
+        } else {
+          alert('Failed to save product on server');
+          return;
+        }
+      } catch (err) {
+        console.error('Save product error:', err);
+        return;
+      }
+    }
+    
     if (this.editingProduct) {
       const index = this.products.findIndex(p => p.id === this.editingProduct.id);
       if (index !== -1) {
         this.products[index] = { ...this.products[index], ...productData };
       }
     } else {
-      const newId = this.products.length > 0 ? Math.max(...this.products.map(p => p.id)) + 1 : 1;
-      productData.id = newId;
+      if (!USE_REAL_BACKEND) {
+        const newId = this.products.length > 0 ? Math.max(...this.products.map(p => p.id)) + 1 : 1;
+        productData.id = newId;
+      }
       this.products.unshift(productData);
     }
     
-    localStorage.setItem('kamal_products', JSON.stringify(this.products));
+    if (!USE_REAL_BACKEND) {
+      localStorage.setItem('kamal_products', JSON.stringify(this.products));
+    }
     this.closeModal();
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
   },
   
-  deleteProduct(id) {
+  async deleteProduct(id) {
     if (confirm("Are you sure you want to delete this product?")) {
+      if (USE_REAL_BACKEND) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/products.php?id=${id}`, {
+            method: 'DELETE'
+          });
+          if (!res.ok) {
+            alert('Failed to delete product from server');
+            return;
+          }
+        } catch (err) {
+          console.error("Delete error:", err);
+          return;
+        }
+      }
+      
       this.products = this.products.filter(p => p.id !== id);
-      localStorage.setItem('kamal_products', JSON.stringify(this.products));
+      if (!USE_REAL_BACKEND) {
+        localStorage.setItem('kamal_products', JSON.stringify(this.products));
+      }
     }
   },
 
@@ -536,11 +666,30 @@ Alpine.data('adminPage', () => ({
     this.selectedOrder = null;
   },
 
-  updateOrderStatus(orderId, newStatus) {
+  async updateOrderStatus(orderId, newStatus) {
+    if (USE_REAL_BACKEND) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/orders.php`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: orderId, status: newStatus })
+        });
+        if (!res.ok) {
+          alert('Failed to update status on server');
+          return;
+        }
+      } catch (err) {
+        console.error("Update status error:", err);
+        return;
+      }
+    }
+
     const index = this.orders.findIndex(o => o.id === orderId);
     if (index !== -1) {
       this.orders[index].status = newStatus;
-      localStorage.setItem('kamal_orders', JSON.stringify(this.orders));
+      if (!USE_REAL_BACKEND) {
+        localStorage.setItem('kamal_orders', JSON.stringify(this.orders));
+      }
       if (this.selectedOrder && this.selectedOrder.id === orderId) {
         this.selectedOrder.status = newStatus;
       }
@@ -548,18 +697,40 @@ Alpine.data('adminPage', () => ({
     }
   },
   
-  init() {
-    // Load orders
-    try {
-      const savedOrders = localStorage.getItem('kamal_orders');
-      if (savedOrders) {
-        this.orders = JSON.parse(savedOrders);
-      } else {
-        this.orders = [...defaultOrders];
-        localStorage.setItem('kamal_orders', JSON.stringify(this.orders));
+  async init() {
+    if (USE_REAL_BACKEND) {
+      try {
+        const prodRes = await fetch(`${API_BASE_URL}/products.php`);
+        if (prodRes.ok) this.products = await prodRes.json();
+        
+        const ordRes = await fetch(`${API_BASE_URL}/orders.php`);
+        if (ordRes.ok) this.orders = await ordRes.json();
+      } catch (err) {
+        console.error("Backend fetch error:", err);
       }
-    } catch(e) {
-      this.orders = [...defaultOrders];
+    } else {
+      // Load mock products
+      try {
+        const savedProducts = localStorage.getItem('kamal_products');
+        if (savedProducts) {
+          this.products = JSON.parse(savedProducts);
+        } else {
+          localStorage.setItem('kamal_products', JSON.stringify(this.products));
+        }
+      } catch(e) {}
+      
+      // Load mock orders
+      try {
+        const savedOrders = localStorage.getItem('kamal_orders');
+        if (savedOrders) {
+          this.orders = JSON.parse(savedOrders);
+        } else {
+          this.orders = [...defaultOrders];
+          localStorage.setItem('kamal_orders', JSON.stringify(this.orders));
+        }
+      } catch(e) {
+        this.orders = [...defaultOrders];
+      }
     }
 
     let hash = window.location.hash.replace('#', '');
