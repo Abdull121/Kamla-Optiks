@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cart & Checkout | Kamal Optiks</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/src/css/style.css" />
+  </head>
+  
+  <body class="bg-background text-primary" x-data="{ mobileMenuOpen: false, scrolled: false }">
+  
+  
+    <!-- Navbar -->
+    <header class="fixed w-full z-50 glass premium-transition" :class="{'py-2': scrolled, 'py-4': !scrolled}" @scroll.window="scrolled = (window.pageYOffset > 20)">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center">
+          <!-- Mobile Menu Button -->
+          <div class="flex items-center md:hidden">
+            <button @click="mobileMenuOpen = true" class="p-2 hover:bg-gray-100 rounded-full premium-transition">
+              <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+          </div>
+
+          <!-- Logo -->
+          <div class="flex-shrink-0 flex items-center">
+            <a href="/" class="text-2xl font-manrope font-bold tracking-tighter text-gradient">KAMAL OPTIKS</a>
+          </div>
+
+          
+          <!-- Desktop Navigation -->
+          <nav class="hidden md:flex space-x-8">
+            <a href="/" class="text-sm font-medium hover:text-accent premium-transition">Home</a>
+            <a href="/shop.html" class="text-sm font-medium hover:text-accent premium-transition">Shop</a>
+            <a href="/shop.html?category=sunglasses" class="text-sm font-medium hover:text-accent premium-transition">Sunglasses</a>
+            <a href="/shop.html?category=prescription" class="text-sm font-medium hover:text-accent premium-transition">Prescription</a>
+            <a href="/about.html" class="text-sm font-medium hover:text-accent premium-transition">About</a>
+          </nav>
+
+
+          <!-- Icons -->
+          <div class="flex items-center space-x-2 md:space-x-4">
+            <button class="p-2 hover:bg-gray-100 rounded-full premium-transition hidden sm:block">
+              <i data-lucide="search" class="w-5 h-5"></i>
+            </button>
+            <a href="/dashboard.html" class="p-2 hover:bg-gray-100 rounded-full premium-transition hidden sm:block">
+              <i data-lucide="user" class="w-5 h-5"></i>
+            </a>
+            <a href="/dashboard.html#wishlist" class="p-2 hover:bg-gray-100 rounded-full premium-transition">
+              <div class="relative">
+                <i data-lucide="heart" class="w-5 h-5"></i>
+                <span x-show="$store.wishlist.items.length > 0" class="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold" x-text="$store.wishlist.items.length"></span>
+              </div>
+            </a>
+            <button @click="$store.cart.toggle()" class="p-2 hover:bg-gray-100 rounded-full premium-transition relative">
+              <div class="relative">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                <span x-show="$store.cart.count > 0" class="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold" x-text="$store.cart.count"></span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  
+  
+    <!-- Mobile Menu Overlay -->
+    <div x-show="mobileMenuOpen" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity" x-transition.opacity></div>
+    <div x-show="mobileMenuOpen" class="fixed inset-y-0 left-0 z-[70] w-64 bg-white shadow-2xl transform transition-transform" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="-translate-x-full"
+         @click.outside="mobileMenuOpen = false">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-8">
+          <span class="text-xl font-bold font-manrope">Menu</span>
+          <button @click="mobileMenuOpen = false" class="p-2 hover:bg-gray-100 rounded-full">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        
+        <nav class="flex flex-col space-y-6">
+          <a href="/" class="text-lg font-medium hover:text-accent">Home</a>
+          <a href="/shop.html" class="text-lg font-medium hover:text-accent">Shop All</a>
+          <a href="/shop.html?category=sunglasses" class="text-lg font-medium hover:text-accent">Sunglasses</a>
+          <a href="/shop.html?category=prescription" class="text-lg font-medium hover:text-accent">Prescription</a>
+          <a href="/about.html" class="text-lg font-medium hover:text-accent">About Us</a>
+        </nav>
+
+      </div>
+    </div>
+
+  
+    <!-- Cart Drawer -->
+    <div x-show="$store.cart.isOpen" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity" x-transition.opacity></div>
+    <div x-show="$store.cart.isOpen" class="fixed inset-y-0 right-0 z-[70] w-full max-w-md bg-white shadow-2xl transform transition-transform flex flex-col" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full"
+         @click.outside="$store.cart.toggle()">
+      
+      <div class="p-6 flex justify-between items-center border-b border-border">
+        <h2 class="text-xl font-bold font-manrope">Your Cart (<span x-text="$store.cart.count"></span>)</h2>
+        <button @click="$store.cart.toggle()" class="p-2 hover:bg-gray-100 rounded-full">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto p-6">
+        <template x-if="$store.cart.items.length === 0">
+          <div class="h-full flex flex-col items-center justify-center text-center">
+            <i data-lucide="shopping-cart" class="w-16 h-16 text-gray-300 mb-4"></i>
+            <p class="text-gray-500 mb-6">Your cart is currently empty.</p>
+            <a href="/shop.html" @click="$store.cart.toggle()" class="bg-primary text-white px-8 py-3 rounded-full hover:bg-black premium-transition font-medium">Continue Shopping</a>
+          </div>
+        </template>
+        
+        <template x-if="$store.cart.items.length > 0">
+          <ul class="space-y-6">
+            <template x-for="item in $store.cart.items" :key="item.id">
+              <li class="flex gap-4">
+                <div class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                  <img :src="item.image" :alt="item.name" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 flex flex-col justify-between">
+                  <div>
+                    <div class="flex justify-between">
+                      <h3 class="font-bold text-sm" x-text="item.name"></h3>
+                      <button @click="$store.cart.remove(item.id)" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1" x-text="item.categoryName"></p>
+                  </div>
+                  <div class="flex justify-between items-end">
+                    <div class="flex items-center border border-gray-200 rounded-full px-2 py-1">
+                      <button @click="$store.cart.updateQuantity(item.id, item.quantity - 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black">-</button>
+                      <span class="w-6 text-center text-sm font-medium" x-text="item.quantity"></span>
+                      <button @click="$store.cart.updateQuantity(item.id, item.quantity + 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black">+</button>
+                    </div>
+                    <p class="font-bold" x-text="'Rs. ' + (item.price * item.quantity).toFixed(2)"></p>
+                  </div>
+                </div>
+              </li>
+            </template>
+          </ul>
+        </template>
+      </div>
+      
+      <div class="p-6 border-t border-border bg-gray-50" x-show="$store.cart.items.length > 0">
+        <div class="flex justify-between mb-4">
+          <span class="font-medium text-gray-600">Subtotal</span>
+          <span class="font-bold text-lg" x-text="'Rs. ' + $store.cart.total.toFixed(2)"></span>
+        </div>
+        <p class="text-xs text-gray-500 mb-6">Shipping and taxes calculated at checkout.</p>
+        <a href="/checkout.html" @click="$store.cart.isOpen = false" class="block w-full bg-accent text-white text-center py-4 rounded-full font-bold hover:bg-blue-700 premium-transition hover-lift">
+          Proceed to Checkout
+        </a>
+      </div>
+    </div>
+
+  
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[80vh]" x-data="checkoutPage">
+      <div class="flex flex-col lg:flex-row gap-12">
+        
+        <!-- Checkout Form -->
+        <div class="flex-1">
+          <h1 class="text-3xl font-bold font-manrope mb-8">Checkout</h1>
+          
+          <template x-if="$store.cart.items.length === 0">
+            <div class="bg-white p-12 rounded-2xl border border-border text-center">
+              <i data-lucide="shopping-cart" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+              <h2 class="text-xl font-bold mb-2">Your cart is empty</h2>
+              <p class="text-gray-500 mb-6">Looks like you haven't added anything to your cart yet.</p>
+              <a href="/shop.html" class="inline-block bg-black text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800">Start Shopping</a>
+            </div>
+          </template>
+          
+          <template x-if="$store.cart.items.length > 0">
+            <form @submit.prevent="processCheckout" class="space-y-8">
+              <!-- Contact Info -->
+              <div class="bg-white p-6 md:p-8 rounded-2xl border border-border soft-shadow">
+                <h2 class="text-xl font-bold font-manrope mb-6">Contact Information</h2>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" required x-model="form.email" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black premium-transition">
+                  </div>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="rounded border-gray-300 text-black focus:ring-black">
+                    <span class="text-sm text-gray-600">Email me with news and offers</span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- Shipping Address -->
+              <div class="bg-white p-6 md:p-8 rounded-2xl border border-border soft-shadow">
+                <h2 class="text-xl font-bold font-manrope mb-6">Shipping Address</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                    <input type="text" required x-model="form.firstName" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <input type="text" required x-model="form.lastName" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black">
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                    <input type="text" required x-model="form.address" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black" placeholder="Apartment, suite, etc.">
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input type="text" required x-model="form.city" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <select class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black">
+                      <option>United States</option>
+                      <option>United Kingdom</option>
+                      <option>Canada</option>
+                      <option>Australia</option>
+                      <option>Pakistan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                    <input type="text" required x-model="form.zip" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black">
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input type="tel" required x-model="form.phone" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Method -->
+              <div class="bg-white p-6 md:p-8 rounded-2xl border border-border soft-shadow">
+                <h2 class="text-xl font-bold font-manrope mb-6">Payment Method</h2>
+                <div class="space-y-4">
+                  <label class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer" :class="paymentMethod === 'cod' ? 'border-black bg-gray-50' : ''">
+                    <input type="radio" name="payment" value="cod" x-model="paymentMethod" class="w-5 h-5 text-black focus:ring-black border-gray-300 accent-black">
+                    <span class="font-medium">Cash on Delivery (COD)</span>
+                  </label>
+                  <label class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer" :class="paymentMethod === 'bank' ? 'border-black bg-gray-50' : ''">
+                    <input type="radio" name="payment" value="bank" x-model="paymentMethod" class="w-5 h-5 text-black focus:ring-black border-gray-300 accent-black">
+                    <span class="font-medium">Direct Bank Transfer</span>
+                  </label>
+                  <div x-show="paymentMethod === 'bank'" class="p-4 bg-blue-50 text-blue-800 rounded-lg text-sm" x-transition>
+                    Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.
+                  </div>
+                </div>
+              </div>
+              
+              <button type="submit" class="w-full bg-black text-white text-lg font-bold py-4 rounded-xl shadow-lg hover:bg-gray-800 hover-lift premium-transition" :disabled="isProcessing">
+                <span x-show="!isProcessing">Complete Order</span>
+                <span x-show="isProcessing" class="flex items-center justify-center gap-2">
+                  <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processing...
+                </span>
+              </button>
+            </form>
+          </template>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="w-full lg:w-96 flex-shrink-0" x-show="$store.cart.items.length > 0">
+          <div class="bg-gray-50 p-6 md:p-8 rounded-2xl border border-border sticky top-8">
+            <h2 class="text-xl font-bold font-manrope mb-6">Order Summary</h2>
+            
+            <ul class="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2">
+              <template x-for="item in $store.cart.items" :key="item.id">
+                <li class="flex gap-4">
+                  <div class="w-16 h-16 bg-white rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 relative">
+                    <img :src="item.image" class="w-full h-full object-cover">
+                    <span class="absolute -top-2 -right-2 bg-gray-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center" x-text="item.quantity"></span>
+                  </div>
+                  <div class="flex-1 flex flex-col justify-center">
+                    <h4 class="font-bold text-sm truncate" x-text="item.name"></h4>
+                    <p class="text-xs text-gray-500" x-text="item.categoryName"></p>
+                  </div>
+                  <div class="font-medium text-sm flex items-center" x-text="'Rs. ' + (item.price * item.quantity).toFixed(2)"></div>
+                </li>
+              </template>
+            </ul>
+            
+            <div class="border-t border-gray-200 pt-6 space-y-3">
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Subtotal</span>
+                <span class="font-medium" x-text="'Rs. ' + $store.cart.total.toFixed(2)"></span>
+              </div>
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Shipping</span>
+                <span class="font-medium text-success">Free</span>
+              </div>
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Tax (Estimated)</span>
+                <span class="font-medium" x-text="'Rs. ' + (0).toFixed(2)"></span>
+              </div>
+              
+              <!-- Coupon -->
+              <div class="pt-4 flex gap-2">
+                <input type="text" placeholder="Discount code" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black">
+                <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300">Apply</button>
+              </div>
+              
+              <div class="border-t border-gray-200 pt-4 flex justify-between items-center mt-4">
+                <span class="font-bold text-lg">Total</span>
+                <span class="font-bold text-2xl font-manrope" x-text="'Rs. ' + $store.cart.total.toFixed(2)"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 border-t border-border pt-16 pb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-12 mb-16">
+          <div class="col-span-1 md:col-span-1">
+            <a href="/" class="text-2xl font-manrope font-bold tracking-tighter text-gradient mb-6 block">KAMAL OPTIKS</a>
+            <p class="text-gray-500 mb-6">Premium eyewear for the modern generation. Crafted with precision, designed for luxury.</p>
+            <div class="flex gap-4">
+              <a href="#" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-accent soft-shadow premium-transition">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/></svg>
+              </a>
+              <a href="#" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-accent soft-shadow premium-transition">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd"/></svg>
+                </a>
+              <a href="#" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-accent soft-shadow premium-transition">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+                </a>
+            </div>
+          </div>
+          
+          <div>
+            <h4 class="font-bold mb-6">Shop</h4>
+            <ul class="space-y-4">
+              <li><a href="/shop.html" class="text-gray-500 hover:text-black premium-transition">All Products</a></li>
+              <li><a href="/shop.html?category=prescription" class="text-gray-500 hover:text-black premium-transition">Prescription Glasses</a></li>
+              <li><a href="/shop.html?category=sunglasses" class="text-gray-500 hover:text-black premium-transition">Sunglasses</a></li>
+              <li><a href="/shop.html?category=blue-light" class="text-gray-500 hover:text-black premium-transition">Blue Light Glasses</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 class="font-bold mb-6">Support</h4>
+            <ul class="space-y-4">
+              <li><a href="/faq.html" class="text-gray-500 hover:text-black premium-transition">FAQ</a></li>
+              <li><a href="/contact.html" class="text-gray-500 hover:text-black premium-transition">Contact Us</a></li>
+              <li><a href="/shipping-policy.html" class="text-gray-500 hover:text-black premium-transition">Shipping & Returns</a></li>
+              <li><a href="/dashboard.html" class="text-gray-500 hover:text-black premium-transition">Track Order</a></li>
+            </ul>
+          </div>
+          
+          
+            <div>
+              <h4 class="font-bold mb-6">Our Stores</h4>
+              <ul class="space-y-4 text-sm text-gray-500">
+                <li>
+                  <strong class="text-black block mb-1">Lahore</strong>
+                  97 D-1 IEP Building, Liberty Round About Gulberg III<br>
+                  Tel: 042 3587 1210, 3578 4448<br>
+                  WhatsApp: 0332 2573686
+                </li>
+                <li class="pt-2">
+                  <strong class="text-black block mb-1">Karachi</strong>
+                  9/10, Grace Tower Block 17, Gulistan-e-Johar<br>
+                  Tel: +92 21 34624646, +92 21 34622820<br>
+                  WhatsApp: 0321-1095541
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="font-bold mb-6">Join Our Newsletter</h4>
+            <p class="text-gray-500 mb-4">Get 10% off your first order and stay updated with new collections.</p>
+            <form @submit.prevent="alert('Subscribed successfully!')" class="flex gap-2">
+              <input type="email" placeholder="Enter your email" required class="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-accent premium-transition">
+              <button type="submit" class="bg-black text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-800 premium-transition">Join</button>
+            </form>
+          </div>
+        </div>
+        
+        <div class="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p class="text-gray-500 text-sm">© 2026 Kamal Optiks. All rights reserved.</p>
+          <div class="flex gap-6 text-sm">
+            <a href="/privacy-policy.html" class="text-gray-500 hover:text-black premium-transition">Privacy Policy</a>
+            <a href="/terms.html" class="text-gray-500 hover:text-black premium-transition">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script type="module" src="/src/js/main.js"></script>
+  
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/923322573686" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-[90] bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:bg-[#128C7E] hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
+      <svg viewBox="0 0 24 24" class="w-8 h-8 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.487-1.761-1.66-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+    </a>
+
+</body>
+
+</html>
