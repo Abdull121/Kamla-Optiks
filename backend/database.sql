@@ -10,6 +10,16 @@ CREATE TABLE IF NOT EXISTS `categories` (
   UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `brands` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL,
+  `image` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `products` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -21,7 +31,11 @@ CREATE TABLE IF NOT EXISTS `products` (
   `stock_quantity` int(11) NOT NULL DEFAULT 0,
   `delivery_charges` decimal(10,2) NOT NULL DEFAULT 250.00,
   `description` text DEFAULT NULL,
+  `color` varchar(255) DEFAULT NULL,
+  `colors` text DEFAULT NULL,
+  `sizes` text DEFAULT NULL,
   `image` text DEFAULT NULL,
+  `images` text DEFAULT NULL,
   `in_stock` tinyint(1) NOT NULL DEFAULT 1,
   `is_trending` tinyint(1) NOT NULL DEFAULT 0,
   `rating` decimal(3,1) NOT NULL DEFAULT 5.0,

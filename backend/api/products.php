@@ -30,7 +30,7 @@ function saveBase64Image($base64String) {
     $data = base64_decode($data);
     if ($data === false) return '';
     file_put_contents($uploadDir . $fileName, $data);
-    return '/backend/uploads/' . $fileName;
+    return '/uploads/' . $fileName;
 }
 
 if ($method === 'GET') {
@@ -50,6 +50,9 @@ if ($method === 'GET') {
             $product['reviewsCount'] = (int) $product['reviews_count'];
             $product['categoryId'] = $product['category_id'];
             $product['brandId'] = $product['brand_id'];
+            $product['colors'] = isset($product['colors']) && $product['colors'] ? json_decode($product['colors'], true) : [];
+            $product['sizes'] = isset($product['sizes']) && $product['sizes'] ? json_decode($product['sizes'], true) : [];
+            $product['images'] = isset($product['images']) && $product['images'] ? json_decode($product['images'], true) : [];
         }
         
         echo json_encode($products);
@@ -62,36 +65,39 @@ if ($method === 'GET') {
     $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
     
     if (strpos($contentType, 'application/json') !== false) {
-        // JSON payload — convert any base64 images to files
+        // JSON payload â€” convert any base64 images to files
         $data = json_decode(file_get_contents('php://input'), true);
         
         $name = $data['name'] ?? '';
-        $sku = $data['sku'] ?? '';
-        $category_id = $data['categoryId'] ?? '';
-        $brand_id = $data['brandId'] ?? '';
-        $price = $data['price'] ?? 0;
-        $discount_price = isset($data['discountPrice']) && $data['discountPrice'] !== '' ? $data['discountPrice'] : null;
-        $stock_quantity = $data['stockQuantity'] ?? 0;
-        $delivery_charges = $data['deliveryCharges'] ?? 250;
-        $description = $data['description'] ?? '';
-        $image = $data['image'] ?? '';
-        $in_stock = ($stock_quantity > 0) ? 1 : 0;
-        $is_trending = isset($data['isTrending']) && $data['isTrending'] ? 1 : 0;
+    $sku = $data['sku'] ?? '';
+    $category_id = $data['categoryId'] ?? '';
+    $brand_id = $data['brandId'] ?? '';
+    $price = $data['price'] ?? 0;
+    $discount_price = isset($data['discountPrice']) && $data['discountPrice'] !== '' ? $data['discountPrice'] : null;
+    $stock_quantity = $data['stockQuantity'] ?? 0;
+    $delivery_charges = $data['deliveryCharges'] ?? 250;
+    $description = $data['description'] ?? '';
+    $color = $data['color'] ?? '';
+    $colors = $data['colors'] ?? '[]';
+    $sizes = $data['sizes'] ?? '[]';
+    $imagesJson = $data['images'] ?? '[]';
+    
+    $in_stock = ($stock_quantity > 0) ? 1 : 0;
+    $is_trending = isset($data['isTrending']) && ($data['isTrending'] === 'true' || $data['isTrending'] == 1 || $data['isTrending'] === true) ? 1 : 0;
+    
+    try {
+        $stmt = $pdo->prepare("UPDATE products SET name=?, sku=?, category_id=?, brand_id=?, price=?, discount_price=?, stock_quantity=?, delivery_charges=?, description=?, color=?, colors=?, sizes=?, image=?, images=?, in_stock=?, is_trending=? WHERE id=?");
+        $stmt->execute([$name, $sku, $category_id, $brand_id, $price, $discount_price, $stock_quantity, $delivery_charges, $description, $color, $colors, $sizes, $image, $imagesJson, $in_stock, $is_trending, $id]);
         
-        // Auto-convert base64 to file
-        $image = saveBase64Image($image);
-        
-        try {
-            $stmt = $pdo->prepare("INSERT INTO products (name, sku, category_id, brand_id, price, discount_price, stock_quantity, delivery_charges, description, image, in_stock, is_trending) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $sku, $category_id, $brand_id, $price, $discount_price, $stock_quantity, $delivery_charges, $description, $image, $in_stock, $is_trending]);
-            
-            echo json_encode(["success" => true, "id" => $pdo->lastInsertId(), "image" => $image]);
-        } catch (PDOException $e) {
+        // Ensure image paths are returned for the frontend
+        echo json_encode(["success" => true, "image" => $image, "images" => json_decode($imagesJson, true)]);
+    } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode(["error" => "Failed to insert product", "message" => $e->getMessage()]);
         }
     } else {
-        // FormData (multipart) — real file upload
+        
+        // FormData (multipart) â€” real file upload
         $name = $_POST['name'] ?? '';
         $sku = $_POST['sku'] ?? '';
         $category_id = $_POST['categoryId'] ?? '';
@@ -101,10 +107,14 @@ if ($method === 'GET') {
         $stock_quantity = $_POST['stockQuantity'] ?? 0;
         $delivery_charges = $_POST['deliveryCharges'] ?? 250;
         $description = $_POST['description'] ?? '';
+        $color = $_POST['color'] ?? '';
+        $colors = $_POST['colors'] ?? '[]';
+        $sizes = $_POST['sizes'] ?? '[]';
+        
         $in_stock = ($stock_quantity > 0) ? 1 : 0;
         $is_trending = isset($_POST['isTrending']) && ($_POST['isTrending'] === 'true' || $_POST['isTrending'] == 1) ? 1 : 0;
         
-        // Handle file upload
+        // Handle single image upload (legacy)
         $imagePath = '';
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = ensureUploadsDir();
@@ -115,25 +125,50 @@ if ($method === 'GET') {
             $targetPath = $uploadDir . $fileName;
             
             if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-                $imagePath = '/backend/uploads/' . $fileName;
+                $imagePath = '/uploads/' . $fileName;
             }
         } elseif (isset($_POST['existingImage']) && !empty($_POST['existingImage'])) {
-            // Editing: keep existing image path
             $imagePath = $_POST['existingImage'];
         }
+
+        // Handle multiple images upload
+        $existingImages = isset($_POST['existingImages']) ? json_decode($_POST['existingImages'], true) : [];
+        if (!is_array($existingImages)) $existingImages = [];
         
+        $imagesPaths = $existingImages;
+        if (isset($_FILES['images'])) {
+            $uploadDir = ensureUploadsDir();
+            foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
+                if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
+                    $ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
+                    $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+                    if (!in_array($ext, $allowedExts)) $ext = 'png';
+                    $fileName = time() . '_' . bin2hex(random_bytes(4)) . '_' . $key . '.' . $ext;
+                    $targetPath = $uploadDir . $fileName;
+                    if (move_uploaded_file($tmp_name, $targetPath)) {
+                        $imagesPaths[] = '/uploads/' . $fileName;
+                    }
+                }
+            }
+        }
+        $imagesJson = json_encode($imagesPaths);
+        // Also sync legacy image if empty
+        if (empty($imagePath) && count($imagesPaths) > 0) {
+            $imagePath = $imagesPaths[0];
+        }
+
         try {
-            $stmt = $pdo->prepare("INSERT INTO products (name, sku, category_id, brand_id, price, discount_price, stock_quantity, delivery_charges, description, image, in_stock, is_trending) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $sku, $category_id, $brand_id, $price, $discount_price, $stock_quantity, $delivery_charges, $description, $imagePath, $in_stock, $is_trending]);
+            $stmt = $pdo->prepare("INSERT INTO products (name, sku, category_id, brand_id, price, discount_price, stock_quantity, delivery_charges, description, color, colors, sizes, image, images, in_stock, is_trending) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$name, $sku, $category_id, $brand_id, $price, $discount_price, $stock_quantity, $delivery_charges, $description, $color, $colors, $sizes, $imagePath, $imagesJson, $in_stock, $is_trending]);
             
-            echo json_encode(["success" => true, "id" => $pdo->lastInsertId(), "image" => $imagePath]);
+            echo json_encode(["success" => true, "id" => $pdo->lastInsertId(), "image" => $imagePath, "images" => $imagesPaths]);
         } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode(["error" => "Failed to insert product", "message" => $e->getMessage()]);
         }
     }
 } elseif ($method === 'PUT') {
-    // Update product — handle both JSON and FormData
+    // Update product â€” handle both JSON and FormData
     $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
     
     if (strpos($contentType, 'application/json') !== false) {
@@ -156,7 +191,7 @@ if ($method === 'GET') {
             $fileName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
             $targetPath = $uploadDir . $fileName;
             if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-                $image = '/backend/uploads/' . $fileName;
+                $image = '/uploads/' . $fileName;
             }
         } elseif (isset($_POST['existingImage']) && !empty($_POST['existingImage'])) {
             $image = $_POST['existingImage'];
@@ -178,6 +213,7 @@ if ($method === 'GET') {
     $stock_quantity = $data['stockQuantity'] ?? 0;
     $delivery_charges = $data['deliveryCharges'] ?? 250;
     $description = $data['description'] ?? '';
+        $color = $data['color'] ?? '';
     $in_stock = ($stock_quantity > 0) ? 1 : 0;
     $is_trending = isset($data['isTrending']) && ($data['isTrending'] === 'true' || $data['isTrending'] == 1 || $data['isTrending'] === true) ? 1 : 0;
     

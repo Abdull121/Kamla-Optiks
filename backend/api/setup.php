@@ -1,5 +1,5 @@
 <?php
-// setup.php — Safe to run multiple times. Applies schema migrations.
+// setup.php â€” Safe to run multiple times. Applies schema migrations.
 header("Content-Type: application/json");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 require_once 'db.php';
@@ -11,6 +11,10 @@ try {
     $migrations = [
         "sku column"      => "ALTER TABLE products ADD COLUMN sku varchar(100) DEFAULT NULL AFTER name",
         "is_trending col" => "ALTER TABLE products ADD COLUMN is_trending tinyint(1) NOT NULL DEFAULT 0 AFTER in_stock",
+        "color col"       => "ALTER TABLE products ADD COLUMN color varchar(255) DEFAULT NULL AFTER description",
+        "colors col"      => "ALTER TABLE products ADD COLUMN colors text DEFAULT NULL AFTER color",
+        "sizes col"       => "ALTER TABLE products ADD COLUMN sizes text DEFAULT NULL AFTER colors",
+        "images col"      => "ALTER TABLE products ADD COLUMN images text DEFAULT NULL AFTER image",
     ];
     foreach ($migrations as $label => $sql) {
         try {
@@ -19,6 +23,52 @@ try {
         } catch (PDOException $e) {
             $results[] = "Skipped $label (already exists)";
         }
+    }
+
+    // CREATE brands table if it doesn't exist
+    $brandsSql = "CREATE TABLE IF NOT EXISTS `brands` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `name` varchar(255) NOT NULL,
+      `slug` varchar(255) NOT NULL,
+      `image` text DEFAULT NULL,
+      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `slug` (`slug`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    $pdo->exec($brandsSql);
+    $results[] = "Ensured brands table exists";
+
+    // SEED brands table if empty
+    $brandCount = $pdo->query("SELECT COUNT(*) FROM brands")->fetchColumn();
+    if ($brandCount == 0) {
+        $seedBrands = [
+            ['name' => 'Kamal Exclusives', 'slug' => 'kamal-exclusives'],
+            ['name' => 'Ray-Ban', 'slug' => 'ray-ban'],
+            ['name' => 'Gentle Monster', 'slug' => 'gentle-monster'],
+            ['name' => 'Oakley', 'slug' => 'oakley'],
+            ['name' => 'Tom Ford', 'slug' => 'tom-ford']
+        ];
+        $stmt = $pdo->prepare("INSERT INTO brands (name, slug) VALUES (?, ?)");
+        foreach ($seedBrands as $b) {
+            $stmt->execute([$b['name'], $b['slug']]);
+        }
+        $results[] = "Seeded 5 initial brands";
+    }
+
+    // SEED categories table if empty
+    $catCountDb = $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
+    if ($catCountDb == 0) {
+        $seedCategories = [
+            ['name' => 'Sunglasses', 'slug' => 'sunglasses'],
+            ['name' => 'Eyeglasses', 'slug' => 'eyeglasses'],
+            ['name' => 'Contact Lenses', 'slug' => 'contact-lenses'],
+            ['name' => 'Accessories', 'slug' => 'accessories']
+        ];
+        $stmt = $pdo->prepare("INSERT INTO categories (name, slug) VALUES (?, ?)");
+        foreach ($seedCategories as $c) {
+            $stmt->execute([$c['name'], $c['slug']]);
+        }
+        $results[] = "Seeded 4 initial categories";
     }
 
     // STEP 2: Fix foreign key to CASCADE delete (so deleting products works)
@@ -47,7 +97,7 @@ try {
         $decoded = base64_decode($data);
         if ($decoded !== false) {
             file_put_contents($uploadDir . $fileName, $decoded);
-            $newPath = '/backend/uploads/' . $fileName;
+            $newPath = '/uploads/' . $fileName;
             $update = $pdo->prepare("UPDATE products SET image = ? WHERE id = ?");
             $update->execute([$newPath, $row['id']]);
             $migratedCount++;
@@ -72,7 +122,7 @@ try {
         $decoded = base64_decode($data);
         if ($decoded !== false) {
             file_put_contents($catUploadDir . $fileName, $decoded);
-            $newPath = '/backend/uploads/categories/' . $fileName;
+            $newPath = '/uploads/categories/' . $fileName;
             $update = $pdo->prepare("UPDATE categories SET image = ? WHERE id = ?");
             $update->execute([$newPath, $row['id']]);
             $catMigrated++;
@@ -83,10 +133,11 @@ try {
     // STEP 4: Verify final state
     $productCount = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
     $catCount = $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
+    $brandCount = $pdo->query("SELECT COUNT(*) FROM brands")->fetchColumn();
 
     echo json_encode([
         "status"   => "success",
-        "message"  => "Setup complete! Products: $productCount, Categories: $catCount",
+        "message"  => "Setup complete! Products: $productCount, Categories: $catCount, Brands: $brandCount",
         "details"  => $results
     ], JSON_PRETTY_PRINT);
 

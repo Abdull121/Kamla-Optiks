@@ -4,74 +4,8 @@ import { createIcons } from 'lucide';
 import {
   ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users
 } from 'lucide';
-import { products, categories, brands } from '../data/mockData.js';
-
 export const USE_REAL_BACKEND = true; // Set to true when deploying to Hostinger
-export const API_BASE_URL = '/backend/api';
-const defaultOrders = [
-  {
-    id: 'KML-20268493',
-    customerName: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '0300-1234567',
-    address: '123 Luxury Avenue, Gulberg III, Lahore',
-    date: 'July 1, 2026',
-    total: 69720,
-    deliveryCharges: 250,
-    status: 'Delivered',
-    items: [ { name: 'Premium Frame Model 12', qty: 1, price: 69470, image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=200&q=80' } ]
-  },
-  {
-    id: 'KML-20267211',
-    customerName: 'Sarah Smith',
-    email: 'sarah.smith@example.com',
-    phone: '0321-7654321',
-    address: 'Flat 402, Block 17, Gulistan-e-Johar, Karachi',
-    date: 'June 15, 2026',
-    total: 50540,
-    deliveryCharges: 250,
-    status: 'Processing',
-    items: [ { name: 'Premium Frame Model 4', qty: 1, price: 50290, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=200&q=80' } ]
-  },
-  {
-    id: 'KML-20261102',
-    customerName: 'Ali Khan',
-    email: 'ali.khan@example.com',
-    phone: '0333-9876543',
-    address: 'House 14, Sector F-7/2, Islamabad',
-    date: 'June 10, 2026',
-    total: 35000,
-    deliveryCharges: 250,
-    status: 'Pending',
-    items: [ { name: 'Premium Frame Model 8', qty: 1, price: 34750, image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=200&q=80' } ]
-  },
-  {
-    id: 'KML-20260942',
-    customerName: 'Fatima Ahmed',
-    email: 'fatima@example.com',
-    phone: '0345-1122334',
-    address: '54-A, DHA Phase 5, Lahore',
-    date: 'June 05, 2026',
-    total: 24500,
-    deliveryCharges: 250,
-    status: 'Shipped',
-    items: [ { name: 'Premium Frame Model 15', qty: 1, price: 24250, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=200&q=80' } ]
-  },
-  {
-    id: 'KML-20260531',
-    customerName: 'Zainab Bibi',
-    email: 'zainab@example.com',
-    phone: '0312-3456789',
-    address: 'Near Liberty Roundabout, Gulberg, Lahore',
-    date: 'May 28, 2026',
-    total: 18000,
-    deliveryCharges: 250,
-    status: 'Cancelled',
-    items: [ { name: 'Premium Frame Model 20', qty: 1, price: 17750, image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=200&q=80' } ]
-  }
-];
-
-
+export const API_BASE_URL = '/api';
 window.Alpine = Alpine;
 Alpine.plugin(collapse);
 
@@ -153,7 +87,7 @@ Alpine.data('homePage', () => ({
   async init() {
     this.isLoading = true;
     // Start with empty array — do NOT fall back to mock data when real backend is on
-    let currentProducts = USE_REAL_BACKEND ? [] : products;
+    let currentProducts = [];
     if (USE_REAL_BACKEND) {
       try {
         const ts = Date.now(); // cache-bust
@@ -179,9 +113,10 @@ Alpine.data('homePage', () => ({
 
 Alpine.data('shopPage', () => ({
   mobileFiltersOpen: false,
-  products: USE_REAL_BACKEND ? [] : products,
+  isLoading: true,
+  products: [],
   categories: [],
-  brands: brands,
+  brands: [],
   selectedCategories: [],
   selectedBrands: [],
   maxPrice: 150000,
@@ -222,25 +157,42 @@ Alpine.data('shopPage', () => ({
     this.page = 1;
   },
   async init() {
+    this.isLoading = true;
+    let fetchedProducts = [];
     if (USE_REAL_BACKEND) {
       try {
         const ts = Date.now();
         const res = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
-        if (res.ok) this.products = await res.json();
+        if (res.ok) fetchedProducts = await res.json();
         
         const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
         if (catRes.ok) this.categories = await catRes.json();
       } catch(e) { console.error(e); }
     } else {
       const saved = localStorage.getItem('kamal_products');
-      if (saved) this.products = JSON.parse(saved);
+      if (saved) fetchedProducts = JSON.parse(saved);
     }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const categorySlug = urlParams.get('category');
+    if (categorySlug && this.categories) {
+      const cat = this.categories.find(c => c.slug === categorySlug || c.name.toLowerCase() === categorySlug.toLowerCase());
+      if (cat) {
+        this.selectedCategories = [cat.id.toString()];
+      }
+    }
+
+    this.products = fetchedProducts;
     
     this.$watch('selectedCategories', () => { this.page = 1; });
     this.$watch('selectedBrands', () => { this.page = 1; });
     this.$watch('maxPrice', () => { this.page = 1; });
     this.$watch('sortBy', () => { this.page = 1; });
-    setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+    
+    setTimeout(() => { 
+      this.isLoading = false;
+      setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    }, 100);
   }
 }));
 
@@ -283,7 +235,7 @@ Alpine.data('productPage', () => ({
     this.product = currentProducts.find(p => p.id === id) || currentProducts[0];
     if (this.product) {
       this.activeImage = this.product.images ? this.product.images[0] : this.product.image;
-      this.selectedColor = this.product.colors ? this.product.colors[0] : 'Black';
+      this.selectedColor = this.product.color || 'Black';
       this.selectedSize = this.product.sizes ? this.product.sizes[0] : 'Medium';
     }
     
@@ -424,10 +376,10 @@ Alpine.data('adminPage', () => ({
   isSubmitting: false,
   submittingId: null,
   editingProduct: null,
-  products: USE_REAL_BACKEND ? [] : products, 
+  products: [],
   categories: [],
-  brands: brands,
-  
+  brands: [],
+
   // Category management state
   isCategoryModalOpen: false,
   editingCategory: null,
@@ -437,7 +389,17 @@ Alpine.data('adminPage', () => ({
     slug: '',
     image: ''
   },
-  
+
+  // Brand management state
+  isBrandModalOpen: false,
+  editingBrand: null,
+  brandForm: {
+    id: null,
+    name: '',
+    slug: '',
+    image: ''
+  },
+
   form: {
     id: null,
     name: '',
@@ -449,7 +411,8 @@ Alpine.data('adminPage', () => ({
     stockQuantity: 10,
     deliveryCharges: 250,
     description: '',
-    image: '',
+        color: '',
+        image: '',
     inStock: true,
     isTrending: false
   },
@@ -459,7 +422,7 @@ Alpine.data('adminPage', () => ({
   itemsPerPage: 8,
   
   // Orders management state
-  orders: USE_REAL_BACKEND ? [] : [], // We use empty array if real backend
+  orders: [],
   ordersPage: 1,
   ordersItemsPerPage: 8,
   ordersFilter: 'all',
@@ -544,6 +507,8 @@ Alpine.data('adminPage', () => ({
         stockQuantity: product.stockQuantity || 0,
         deliveryCharges: product.deliveryCharges || 250,
         description: product.description || '',
+        color: product.color || '',
+        image: product.image || '',
         image: product.image || '',
         inStock: product.inStock !== undefined ? product.inStock : true,
         isTrending: product.isTrending || false
@@ -555,24 +520,86 @@ Alpine.data('adminPage', () => ({
         sku: '',
         categoryId: '',
         brandId: '',
-        price: '',
-        discountPrice: '',
+        price: 0,
+        discountPrice: null,
         stockQuantity: 10,
         deliveryCharges: 250,
         description: '',
         image: '',
         inStock: true,
-        isTrending: false
+        isTrending: false,
+        colors: [],
+        sizes: [],
+        images: []
       };
     }
     this.isModalOpen = true;
   },
   
   closeModal() {
+    this._imageFiles = [];
     this.isModalOpen = false;
     this.editingProduct = null;
   },
   
+  newColor: '',
+  newSize: '',
+  _imageFiles: [],
+  addColor() {
+    if (this.newColor.trim() && !this.form.colors.includes(this.newColor.trim())) {
+      this.form.colors.push(this.newColor.trim());
+    }
+    this.newColor = '';
+  },
+  removeColor(index) {
+    this.form.colors.splice(index, 1);
+  },
+  addSize() {
+    if (this.newSize.trim() && !this.form.sizes.includes(this.newSize.trim())) {
+      this.form.sizes.push(this.newSize.trim());
+    }
+    this.newSize = '';
+  },
+  removeSize(index) {
+    this.form.sizes.splice(index, 1);
+  },
+  handleImagesUpload(event) {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+    
+    const currentCount = this.form.images.length;
+    const remaining = 3 - currentCount;
+    const filesToAdd = files.slice(0, remaining);
+    
+    if (files.length > remaining) {
+      alert("Maximum 3 images allowed. Only " + remaining + " images were added.");
+    }
+    
+    filesToAdd.forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File " + file.name + " is too large.");
+        return;
+      }
+      this._imageFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.form.images.push(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+  removeImage(index) {
+    const img = this.form.images[index];
+    this.form.images.splice(index, 1);
+    if (img.startsWith('data:')) {
+      // It's a new upload, we just clear the _imageFiles completely and ask user to re-upload new ones.
+      // This is a simple safe fallback for the UI to keep indices matched.
+      // For a perfect UX, we'd map it, but clearing and letting them re-select is fine for admin.
+      this._imageFiles = [];
+      this.form.images = this.form.images.filter(i => !i.startsWith('data:'));
+      if (img.startsWith('data:')) { alert("Please re-select any new images you wanted to keep."); }
+    }
+  },
   handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -594,8 +621,9 @@ Alpine.data('adminPage', () => ({
   },
   
   async saveProduct() {
-    if (!this.form.name || !this.form.categoryId || !this.form.brandId || !this.form.price || !this.form.image) {
-      alert("Please fill in all required fields and upload an image.");
+    const hasImage = this.form.image || (this.form.images && this.form.images.length > 0);
+    if (!this.form.name || !this.form.categoryId || !this.form.brandId || !this.form.price || !hasImage) {
+      alert("Please fill in all required fields and upload at least one image.");
       return;
     }
     
@@ -608,6 +636,7 @@ Alpine.data('adminPage', () => ({
       discountPrice: this.form.discountPrice ? Number(this.form.discountPrice) : null,
       stockQuantity: Number(this.form.stockQuantity),
       deliveryCharges: Number(this.form.deliveryCharges),
+      color: this.form.color || '',
       categoryId: this.form.categoryId,
       brandId: this.form.brandId,
       categoryName: cat ? cat.name : '',
@@ -639,15 +668,39 @@ Alpine.data('adminPage', () => ({
         formData.append('stockQuantity', this.form.stockQuantity);
         formData.append('deliveryCharges', this.form.deliveryCharges);
         formData.append('description', this.form.description || '');
+        formData.append('color', this.form.color || '');
         formData.append('inStock', Number(this.form.stockQuantity) > 0 ? '1' : '0');
         formData.append('isTrending', this.form.isTrending ? '1' : '0');
         
         // Append the actual image File if available
+        // Append the actual single image File if available
         if (this._imageFile) {
           formData.append('image', this._imageFile);
         } else if (this.form.image && !this.form.image.startsWith('data:')) {
           // Editing product, image unchanged (it's a URL path)
           formData.append('existingImage', this.form.image);
+        }
+        
+        // Append multiple images
+        if (this._imageFiles && this._imageFiles.length > 0) {
+          this._imageFiles.forEach((file) => {
+            formData.append('images[]', file);
+          });
+        }
+        
+        if (this.form.images && this.form.images.length > 0) {
+          const existingImages = this.form.images.filter(img => !img.startsWith('data:'));
+          if (existingImages.length > 0) {
+            formData.append('existingImages', JSON.stringify(existingImages));
+          }
+        }
+        
+        // Append colors and sizes
+        if (this.form.colors && this.form.colors.length > 0) {
+          formData.append('colors', JSON.stringify(this.form.colors));
+        }
+        if (this.form.sizes && this.form.sizes.length > 0) {
+          formData.append('sizes', JSON.stringify(this.form.sizes));
         }
         
         if (this.editingProduct) {
@@ -859,6 +912,120 @@ Alpine.data('adminPage', () => ({
     }
   },
 
+  // Brands CRUD
+  openBrandModal(brand = null) {
+    this.editingBrand = brand;
+    if (brand) {
+      this.brandForm = { ...brand };
+    } else {
+      this.brandForm = { id: null, name: '', slug: '', image: '' };
+    }
+    this.isBrandModalOpen = true;
+  },
+
+  closeBrandModal() {
+    this.isBrandModalOpen = false;
+    this.editingBrand = null;
+  },
+
+  handleBrandImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File is too large."); return;
+    }
+    this._brandImageFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => { this.brandForm.image = e.target.result; };
+    reader.readAsDataURL(file);
+  },
+
+  async saveBrand() {
+    if (!this.brandForm.name || !this.brandForm.slug) {
+      alert("Please provide brand name and slug."); return;
+    }
+    this.isSubmitting = true;
+    const brandData = { ...this.brandForm };
+    if (USE_REAL_BACKEND) {
+      try {
+        let res;
+        const formData = new FormData();
+        formData.append('name', this.brandForm.name);
+        formData.append('slug', this.brandForm.slug);
+        if (this._brandImageFile) {
+          formData.append('image', this._brandImageFile);
+        } else if (this.brandForm.image && !this.brandForm.image.startsWith('data:')) {
+          formData.append('existingImage', this.brandForm.image);
+        }
+        if (this.editingBrand) {
+          formData.append('id', this.editingBrand.id);
+          res = await fetch(`${API_BASE_URL}/brands.php?_method=PUT`, {
+            method: 'POST', body: formData
+          });
+        } else {
+          res = await fetch(`${API_BASE_URL}/brands.php`, {
+            method: 'POST', body: formData
+          });
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (data.image) brandData.image = data.image;
+          if (!this.editingBrand && data.id) brandData.id = data.id;
+        } else {
+          alert('Failed to save brand');
+          this.isSubmitting = false;
+          return;
+        }
+      } catch (err) {
+        console.error(err);
+        this.isSubmitting = false;
+        return;
+      }
+    }
+
+    // Refresh from server
+    if (USE_REAL_BACKEND) {
+      try {
+        const ts = Date.now();
+        const brandRes = await fetch(`${API_BASE_URL}/brands.php?_=${ts}`);
+        if (brandRes.ok) this.brands = await brandRes.json();
+      } catch(e) { console.error(e); }
+    } else {
+      if (this.editingBrand) {
+        const idx = this.brands.findIndex(b => b.id === this.editingBrand.id);
+        if (idx !== -1) this.brands[idx] = { ...this.brands[idx], ...brandData };
+      } else {
+        brandData.id = Date.now();
+        this.brands.push(brandData);
+      }
+    }
+    this._brandImageFile = null;
+    this.isSubmitting = false;
+    this.closeBrandModal();
+  },
+
+  async deleteBrand(id) {
+    if (confirm("Are you sure you want to delete this brand?")) {
+      this.submittingId = 'brand_' + id;
+      if (USE_REAL_BACKEND) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/brands.php?id=${id}&_method=DELETE`, { method: 'POST' });
+          if (!res.ok) {
+            alert('Failed to delete brand');
+            this.submittingId = null;
+            return;
+          }
+        } catch (err) {
+          console.error(err);
+          this.submittingId = null;
+          return;
+        }
+      }
+      this.brands = this.brands.filter(b => b.id !== id);
+      this.submittingId = null;
+    }
+  },
+
   // Orders Actions
   openOrderModal(order) {
     this.selectedOrder = JSON.parse(JSON.stringify(order)); // deep clone
@@ -911,7 +1078,10 @@ Alpine.data('adminPage', () => ({
         
         const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
         if (catRes.ok) this.categories = await catRes.json();
-        
+
+        const brandRes = await fetch(`${API_BASE_URL}/brands.php?_=${ts}`);
+        if (brandRes.ok) this.brands = await brandRes.json();
+
         const ordRes = await fetch(`${API_BASE_URL}/orders.php?_=${ts}`);
         if (ordRes.ok) this.orders = await ordRes.json();
       } catch (err) {

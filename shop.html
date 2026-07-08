@@ -244,7 +244,7 @@
             <div>
               <h3 class="font-bold mb-4 font-manrope">Price Range</h3>
               <div class="px-2">
-                <input type="range" min="0" max="500" step="10" x-model="maxPrice" class="w-full accent-accent mb-4">
+                <input type="range" min="0" :max="absoluteMaxPrice" step="500" x-model="maxPrice" class="w-full accent-accent mb-4">
                 <div class="flex justify-between text-sm text-gray-500 font-medium">
                   <span>Rs. 0</span>
                   <span x-text="'Rs. ' + maxPrice"></span>
@@ -260,7 +260,7 @@
 
         <!-- Product Grid -->
         <div class="flex-1">
-          <template x-if="filteredProducts.length === 0">
+          <template x-if="!isLoading && filteredProducts.length === 0">
             <div class="text-center py-20">
               <i data-lucide="search" class="w-12 h-12 text-gray-300 mx-auto mb-4"></i>
               <h3 class="text-xl font-bold mb-2">No products found</h3>
@@ -269,7 +269,25 @@
             </div>
           </template>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <!-- Skeleton Loading State -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" x-show="isLoading">
+            <template x-for="i in 6">
+              <div class="bg-white rounded-[16px] overflow-hidden soft-shadow flex flex-col h-full animate-pulse">
+                <div class="aspect-[4/3] bg-gray-200"></div>
+                <div class="p-5 flex-1 flex flex-col gap-3">
+                  <div class="h-4 bg-gray-200 rounded w-1/4"></div>
+                  <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+                  <div class="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+                  <div class="mt-auto flex justify-between items-center">
+                    <div class="h-6 bg-gray-200 rounded w-1/3"></div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" x-show="!isLoading">
             <template x-for="product in paginatedProducts" :key="product.id">
               <!-- Product Card -->
               <div class="bg-white rounded-[16px] overflow-hidden soft-shadow hover-lift group flex flex-col h-full">
@@ -286,8 +304,11 @@
                   </button>
                   
                   <div class="absolute bottom-0 left-0 w-full p-4 translate-y-full group-hover:translate-y-0 premium-transition">
-                    <button @click="$store.cart.add(product)" class="w-full bg-white text-black font-bold py-2 md:py-3 rounded-full shadow-lg hover:bg-black hover:text-white premium-transition flex items-center justify-center gap-2 text-sm md:text-base">
+                    <button x-show="product.stockQuantity > 0" @click="$store.cart.add(product)" class="w-full bg-white text-black font-bold py-2 md:py-3 rounded-full shadow-lg hover:bg-black hover:text-white premium-transition flex items-center justify-center gap-2 text-sm md:text-base">
                       <i data-lucide="shopping-cart" class="w-4 h-4"></i> Add to Cart
+                    </button>
+                    <button x-show="product.stockQuantity <= 0" disabled class="w-full bg-gray-200 text-gray-500 font-bold py-2 md:py-3 rounded-full shadow-lg cursor-not-allowed flex items-center justify-center gap-2 text-sm md:text-base">
+                      Out of Stock
                     </button>
                   </div>
                 </div>

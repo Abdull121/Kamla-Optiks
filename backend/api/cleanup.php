@@ -1,5 +1,5 @@
 <?php
-// cleanup.php — Wipe ALL products permanently using DELETE (not TRUNCATE)
+// cleanup.php â€” Wipe ALL products permanently using DELETE (not TRUNCATE)
 header("Content-Type: application/json");
 require_once 'db.php';
 

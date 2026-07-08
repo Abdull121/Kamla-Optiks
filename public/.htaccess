@@ -26,14 +26,14 @@
 
 # Force revalidation of HTML on every request (Apache)
 <IfModule mod_headers.c>
-    <FilesMatch "\.html$">
+    <FilesMatch "\.(html|htm|php)$|^[^\.]+$">
         Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
         Header set Pragma "no-cache"
+        Header set Expires "0"
     </FilesMatch>
 </IfModule>
 
 # LiteSpeed-specific: disable page cache for HTML files
-# This ensures LiteSpeed never serves a stale HTML page with old asset hashes
-<FilesMatch "\.html$">
+<FilesMatch "\.(html|htm|php)$|^[^\.]+$">
     CacheLookup off
 </FilesMatch>

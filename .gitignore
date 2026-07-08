@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 CLAUDE.md
 hostinger.md
+
+# Deploy files
+deploy_final_*/
+*.zip
+
