@@ -582,9 +582,13 @@ Alpine.data('adminPage', () => ({
       return;
     }
     
+    // Store the raw File object for FormData upload
+    this._imageFile = file;
+    
+    // Create base64 preview only for the UI
     const reader = new FileReader();
     reader.onload = (e) => {
-      this.form.image = e.target.result;
+      this.form.image = e.target.result; // preview only
     };
     reader.readAsDataURL(file);
   },
@@ -624,23 +628,47 @@ Alpine.data('adminPage', () => ({
     if (USE_REAL_BACKEND) {
       try {
         let res;
+        // Use FormData to upload the actual image file (not base64)
+        const formData = new FormData();
+        formData.append('name', this.form.name);
+        formData.append('sku', this.form.sku || '');
+        formData.append('categoryId', this.form.categoryId);
+        formData.append('brandId', this.form.brandId);
+        formData.append('price', this.form.price);
+        formData.append('discountPrice', this.form.discountPrice || '');
+        formData.append('stockQuantity', this.form.stockQuantity);
+        formData.append('deliveryCharges', this.form.deliveryCharges);
+        formData.append('description', this.form.description || '');
+        formData.append('inStock', Number(this.form.stockQuantity) > 0 ? '1' : '0');
+        formData.append('isTrending', this.form.isTrending ? '1' : '0');
+        
+        // Append the actual image File if available
+        if (this._imageFile) {
+          formData.append('image', this._imageFile);
+        } else if (this.form.image && !this.form.image.startsWith('data:')) {
+          // Editing product, image unchanged (it's a URL path)
+          formData.append('existingImage', this.form.image);
+        }
+        
         if (this.editingProduct) {
+          formData.append('id', this.editingProduct.id);
           res = await fetch(`${API_BASE_URL}/products.php?_method=PUT`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productData)
+            body: formData
           });
         } else {
           res = await fetch(`${API_BASE_URL}/products.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productData)
+            body: formData
           });
         }
         if (res.ok) {
           const data = await res.json();
-          if (!this.editingProduct) productData.id = data.id;
+          if (!this.editingProduct && data.id) productData.id = data.id;
+          if (data.image) productData.image = data.image; // Use server-side path
         } else {
+          const errText = await res.text();
+          console.error('Server error:', errText);
           alert('Failed to save product on server');
           this.isSubmitting = false;
           return;
@@ -652,22 +680,28 @@ Alpine.data('adminPage', () => ({
       }
     }
     
-    if (this.editingProduct) {
-      const index = this.products.findIndex(p => p.id === this.editingProduct.id);
-      if (index !== -1) {
-        this.products[index] = { ...this.products[index], ...productData };
-      }
+    // Refresh products from server to get consistent state
+    if (USE_REAL_BACKEND) {
+      try {
+        const ts = Date.now();
+        const refreshRes = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
+        if (refreshRes.ok) this.products = await refreshRes.json();
+      } catch(e) { console.error('Refresh error:', e); }
     } else {
-      if (!USE_REAL_BACKEND) {
+      if (this.editingProduct) {
+        const index = this.products.findIndex(p => p.id === this.editingProduct.id);
+        if (index !== -1) {
+          this.products[index] = { ...this.products[index], ...productData };
+        }
+      } else {
         const newId = this.products.length > 0 ? Math.max(...this.products.map(p => p.id)) + 1 : 1;
         productData.id = newId;
+        this.products.unshift(productData);
       }
-      this.products.unshift(productData);
-    }
-    
-    if (!USE_REAL_BACKEND) {
       localStorage.setItem('kamal_products', JSON.stringify(this.products));
     }
+    
+    this._imageFile = null;
     this.isSubmitting = false;
     this.closeModal();
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
@@ -693,8 +727,18 @@ Alpine.data('adminPage', () => ({
         }
       }
       
-      this.products = this.products.filter(p => p.id !== id);
-      if (!USE_REAL_BACKEND) {
+      // Refresh from server to ensure consistency
+      if (USE_REAL_BACKEND) {
+        try {
+          const ts = Date.now();
+          const refreshRes = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
+          if (refreshRes.ok) this.products = await refreshRes.json();
+        } catch(e) {
+          // Fallback to local filter if refresh fails
+          this.products = this.products.filter(p => p.id !== id);
+        }
+      } else {
+        this.products = this.products.filter(p => p.id !== id);
         localStorage.setItem('kamal_products', JSON.stringify(this.products));
       }
       this.submittingId = null;
@@ -723,6 +767,7 @@ Alpine.data('adminPage', () => ({
     if (file.size > 5 * 1024 * 1024) {
       alert("File is too large."); return;
     }
+    this._categoryImageFile = file;
     const reader = new FileReader();
     reader.onload = (e) => { this.categoryForm.image = e.target.result; };
     reader.readAsDataURL(file);
@@ -737,17 +782,27 @@ Alpine.data('adminPage', () => ({
     if (USE_REAL_BACKEND) {
       try {
         let res;
+        const formData = new FormData();
+        formData.append('name', this.categoryForm.name);
+        formData.append('slug', this.categoryForm.slug);
+        if (this._categoryImageFile) {
+          formData.append('image', this._categoryImageFile);
+        } else if (this.categoryForm.image && !this.categoryForm.image.startsWith('data:')) {
+          formData.append('existingImage', this.categoryForm.image);
+        }
         if (this.editingCategory) {
+          formData.append('id', this.editingCategory.id);
           res = await fetch(`${API_BASE_URL}/categories.php?_method=PUT`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(catData)
+            method: 'POST', body: formData
           });
         } else {
           res = await fetch(`${API_BASE_URL}/categories.php`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(catData)
+            method: 'POST', body: formData
           });
         }
         if (res.ok) {
           const data = await res.json();
+          if (data.image) catData.image = data.image;
           if (!this.editingCategory && data.id) catData.id = data.id;
         } else {
           alert('Failed to save category'); 
@@ -761,13 +816,23 @@ Alpine.data('adminPage', () => ({
       }
     }
     
-    if (this.editingCategory) {
-      const idx = this.categories.findIndex(c => c.id === this.editingCategory.id);
-      if (idx !== -1) this.categories[idx] = { ...this.categories[idx], ...catData };
+    // Refresh from server
+    if (USE_REAL_BACKEND) {
+      try {
+        const ts = Date.now();
+        const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
+        if (catRes.ok) this.categories = await catRes.json();
+      } catch(e) { console.error(e); }
     } else {
-      if (!USE_REAL_BACKEND) catData.id = Date.now();
-      this.categories.push(catData);
+      if (this.editingCategory) {
+        const idx = this.categories.findIndex(c => c.id === this.editingCategory.id);
+        if (idx !== -1) this.categories[idx] = { ...this.categories[idx], ...catData };
+      } else {
+        catData.id = Date.now();
+        this.categories.push(catData);
+      }
     }
+    this._categoryImageFile = null;
     this.isSubmitting = false;
     this.closeCategoryModal();
   },
@@ -840,13 +905,14 @@ Alpine.data('adminPage', () => ({
   async init() {
     if (USE_REAL_BACKEND) {
       try {
-        const prodRes = await fetch(`${API_BASE_URL}/products.php`);
+        const ts = Date.now(); // cache-bust to bypass LiteSpeed cache
+        const prodRes = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
         if (prodRes.ok) this.products = await prodRes.json();
         
-        const catRes = await fetch(`${API_BASE_URL}/categories.php`);
+        const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
         if (catRes.ok) this.categories = await catRes.json();
         
-        const ordRes = await fetch(`${API_BASE_URL}/orders.php`);
+        const ordRes = await fetch(`${API_BASE_URL}/orders.php?_=${ts}`);
         if (ordRes.ok) this.orders = await ordRes.json();
       } catch (err) {
         console.error("Backend fetch error:", err);
