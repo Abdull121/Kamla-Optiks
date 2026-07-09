@@ -9,7 +9,7 @@ if ($method === 'POST' && isset($_GET['_method'])) {
 
 // Helper: ensure category uploads directory exists
 function ensureCategoryUploadsDir() {
-    $uploadDir = __DIR__ . '/../uploads/categories/';
+    $uploadDir = rtrim(getUploadsPath(), '/\\') . '/categories/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }

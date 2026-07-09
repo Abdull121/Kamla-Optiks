@@ -4,6 +4,14 @@ import { createIcons } from 'lucide';
 import {
   ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users
 } from 'lucide';
+window.hideGlobalLoader = function() {
+  const loader = document.getElementById('full-page-loader');
+  if (loader) {
+    loader.style.opacity = '0';
+    setTimeout(() => loader.remove(), 500);
+  }
+};
+
 export const USE_REAL_BACKEND = true; // Set to true when deploying to Hostinger
 export const API_BASE_URL = '/api';
 window.Alpine = Alpine;
@@ -107,6 +115,7 @@ Alpine.data('homePage', () => ({
       this.trendingProducts = currentProducts.slice(0, 4);
     }
     this.isLoading = false;
+      window.hideGlobalLoader();
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
   }
 }));
@@ -191,6 +200,7 @@ Alpine.data('shopPage', () => ({
     
     setTimeout(() => { 
       this.isLoading = false;
+      window.hideGlobalLoader();
       setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
     }, 100);
   }
@@ -220,7 +230,7 @@ Alpine.data('productPage', () => ({
   async init() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = parseInt(urlParams.get('id')) || 1;
-    let currentProducts = products;
+    let currentProducts = [];
     
     if (USE_REAL_BACKEND) {
       try {
@@ -1087,6 +1097,7 @@ Alpine.data('adminPage', () => ({
       } catch (err) {
         console.error("Backend fetch error:", err);
       }
+      window.hideGlobalLoader();
     } else {
       // Load mock products
       try {
@@ -1252,3 +1263,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+

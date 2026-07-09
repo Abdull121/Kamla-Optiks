@@ -9,7 +9,7 @@ if ($method === 'POST' && isset($_GET['_method'])) {
 
 // Helper: ensure brand uploads directory exists
 function ensureBrandUploadsDir() {
-    $uploadDir = __DIR__ . '/../uploads/brands/';
+    $uploadDir = rtrim(getUploadsPath(), '/\\') . '/brands/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }

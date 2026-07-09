@@ -32,4 +32,21 @@ try {
     echo json_encode(["error" => "Database connection failed", "message" => $e->getMessage()]);
     exit();
 }
+function getUploadsPath() {
+    $dir = __DIR__;
+    if (strpos($dir, 'public_html') !== false) {
+        // If on Hostinger, store outside public_html to prevent wiping on deploy
+        $parts = explode('public_html', $dir);
+        $path = rtrim($parts[0], '/\\') . '/uploads/';
+    } else {
+        // Local environment
+        $path = __DIR__ . '/../uploads/';
+    }
+    
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
+    }
+    return $path;
+}
+
 ?>

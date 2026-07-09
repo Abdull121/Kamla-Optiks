@@ -15,6 +15,12 @@
   </head>
   
   <body class="bg-background text-primary" x-data="{ mobileMenuOpen: false, scrolled: false }">
+  <div id="full-page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-500">
+    <div class="flex flex-col items-center gap-4">
+      <i data-lucide="loader-2" class="w-12 h-12 text-black animate-spin"></i>
+      <p class="text-sm font-semibold tracking-wider text-gray-500 uppercase">Loading System...</p>
+    </div>
+  </div>
   
   
     <!-- Navbar -->
@@ -442,3 +448,4 @@
 </body>
 
 </html>
+

@@ -81,7 +81,7 @@ try {
     }
 
     // STEP 3: Migrate existing base64 images to files
-    $uploadDir = __DIR__ . '/../uploads/';
+    $uploadDir = rtrim(getUploadsPath(), '/\\') . '/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }

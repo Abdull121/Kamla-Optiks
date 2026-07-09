@@ -1,6 +1,10 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
+    # Serve persistent uploads via PHP script
+    RewriteRule ^uploads/(categories|brands)/([^/]+)$ api/image.php?type=$1&file=$2 [L,QSA]
+    RewriteRule ^uploads/([^/]+)$ api/image.php?file=$1 [L,QSA]
+
     # Remove .html extension (optional redirect for cleaner URLs)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME}.html -f
