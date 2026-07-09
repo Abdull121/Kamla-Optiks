@@ -252,14 +252,30 @@
         <h1 class="text-3xl md:text-5xl font-bold font-manrope mb-4" x-text="product.name"></h1>
                 <!-- Dynamic Colors -->
         <div x-show="product.colors && product.colors.length > 0" class="mb-4">
-          <span class="font-bold block mb-2">Color: <span class="font-normal text-gray-600" x-text="selectedColor"></span></span>
-          <div class="flex flex-wrap gap-2">
-            <template x-for="col in product.colors" :key="col">
-              <button @click="selectedColor = col" 
-                      class="px-4 py-2 border rounded-xl font-medium premium-transition"
-                      :class="selectedColor === col ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 hover:border-black'">
-                <span x-text="col"></span>
-              </button>
+          <span class="font-bold block mb-2 flex items-center gap-2">Color: <span class="font-normal text-gray-600" x-text="selectedColor"></span></span>
+          <div class="flex flex-wrap gap-3 mt-2">
+            <template x-for="col in product.colors" :key="col.name">
+              <div class="relative group">
+                <button @click="if(col.qty > 0) selectedColor = col.name" 
+                        :disabled="col.qty <= 0"
+                        class="w-10 h-10 rounded-full border-2 focus:outline-none premium-transition flex items-center justify-center relative overflow-hidden"
+                        :class="[
+                          selectedColor === col.name ? 'border-black scale-110 shadow-md ring-2 ring-black/20' : 'border-transparent ring-1 ring-gray-200 hover:ring-gray-300',
+                          col.qty <= 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:scale-105'
+                        ]"
+                        :style="'background-color: ' + col.name">
+                  
+                  <!-- Out of stock slash -->
+                  <div x-show="col.qty <= 0" class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-[120%] h-0.5 bg-red-500 rotate-45 transform origin-center shadow-sm"></div>
+                  </div>
+                </button>
+                
+                <!-- Tooltip for out of stock -->
+                <div x-show="col.qty <= 0" class="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  Out of Stock
+                </div>
+              </div>
             </template>
           </div>
         </div>
@@ -286,10 +302,10 @@
             <span class="text-gray-500 text-sm" x-text="'(' + product.reviewsCount + ' Reviews)'"></span>
           </div>
           <span class="text-gray-300">|</span>
-          <span x-show="product.stockQuantity > 0" class="text-success font-medium flex items-center gap-1">
+          <span x-show="product.inStock" class="text-success font-medium flex items-center gap-1">
             <i data-lucide="check" class="w-4 h-4"></i> In Stock
           </span>
-          <span x-show="product.stockQuantity <= 0" class="text-red-500 font-medium flex items-center gap-1">
+          <span x-show="!product.inStock" class="text-red-500 font-medium flex items-center gap-1">
             <i data-lucide="x-circle" class="w-4 h-4"></i> Out of Stock
           </span>
         </div>
@@ -428,12 +444,12 @@
             <button @click="quantity++"
               class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-black">+</button>
           </div>
-          <button @click="addToCart()" x-show="product.stockQuantity > 0"
-            class="flex-1 bg-black text-white rounded-xl font-bold py-4 hover:bg-gray-800 hover-lift premium-transition flex justify-center items-center gap-2">
+          <button @click="addToCart()" x-show="product.inStock"
+            class="flex-1 bg-black text-white font-bold py-3 md:py-4 rounded-xl shadow-xl hover:bg-gray-800 hover:-translate-y-1 premium-transition flex items-center justify-center gap-2">
             <i data-lucide="shopping-cart" class="w-5 h-5"></i> Add to Cart
           </button>
-          <button x-show="product.stockQuantity <= 0" disabled
-            class="flex-1 bg-gray-300 text-gray-500 rounded-xl font-bold py-4 cursor-not-allowed flex justify-center items-center gap-2">
+          <button x-show="!product.inStock" disabled
+            class="flex-1 bg-gray-200 text-gray-500 font-bold py-3 md:py-4 rounded-xl shadow-inner cursor-not-allowed flex items-center justify-center gap-2">
             <i data-lucide="shopping-cart" class="w-5 h-5"></i> Out of Stock
           </button>
         </div>

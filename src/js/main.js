@@ -12,6 +12,12 @@ window.hideGlobalLoader = function() {
   }
 };
 
+window.getImageUrl = function(path) {
+  if (!path || typeof path !== 'string') return 'https://via.placeholder.com/150';
+  if (path.startsWith('data:') || path.startsWith('http')) return path;
+  return path.startsWith('/') ? path : '/' + path;
+};
+
 export const USE_REAL_BACKEND = true; // Set to true when deploying to Hostinger
 export const API_BASE_URL = '/api';
 window.Alpine = Alpine;
@@ -222,7 +228,11 @@ Alpine.data('productPage', () => ({
   },
   addToCart() {
     if (!this.product) return;
-    const item = { ...this.product };
+    const item = { 
+      ...this.product,
+      selectedColor: this.selectedColor,
+      selectedSize: this.selectedSize
+    };
     for(let i=0; i<this.quantity; i++){
       this.$store.cart.add(item);
     }
@@ -245,8 +255,27 @@ Alpine.data('productPage', () => ({
     this.product = currentProducts.find(p => p.id === id) || currentProducts[0];
     if (this.product) {
       this.activeImage = this.product.images ? this.product.images[0] : this.product.image;
-      this.selectedColor = this.product.color || 'Black';
+      
+      if (this.product.colors) {
+        this.product.colors = this.product.colors.map(c => typeof c === 'string' ? { name: c, qty: 10 } : c);
+        const availableColor = this.product.colors.find(c => c.qty > 0);
+        this.selectedColor = availableColor ? availableColor.name : (this.product.colors[0]?.name || this.product.color || 'Black');
+      } else {
+        this.selectedColor = this.product.color || 'Black';
+      }
+      
       this.selectedSize = this.product.sizes ? this.product.sizes[0] : 'Medium';
+      
+      if (USE_REAL_BACKEND && this.product.categoryId) {
+        try {
+          const catRes = await fetch(`${API_BASE_URL}/categories.php`);
+          if (catRes.ok) {
+            const categories = await catRes.json();
+            const cat = categories.find(c => c.id == this.product.categoryId);
+            if (cat) this.product.categoryName = cat.name;
+          }
+        } catch(e) { console.error(e); }
+      }
     }
     
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
@@ -519,9 +548,11 @@ Alpine.data('adminPage', () => ({
         description: product.description || '',
         color: product.color || '',
         image: product.image || '',
-        image: product.image || '',
         inStock: product.inStock !== undefined ? product.inStock : true,
-        isTrending: product.isTrending || false
+        isTrending: product.isTrending || false,
+        colors: (product.colors || (product.color ? [product.color] : [])).map(c => typeof c === 'string' ? { name: c, qty: 10 } : c),
+        sizes: product.sizes || [],
+        images: product.images || (product.image ? [product.image] : [])
       };
     } else {
       this.form = {
@@ -556,8 +587,8 @@ Alpine.data('adminPage', () => ({
   newSize: '',
   _imageFiles: [],
   addColor() {
-    if (this.newColor.trim() && !this.form.colors.includes(this.newColor.trim())) {
-      this.form.colors.push(this.newColor.trim());
+    if (this.newColor.trim() && !this.form.colors.some(c => c.name === this.newColor.trim())) {
+      this.form.colors.push({ name: this.newColor.trim(), qty: 10 });
     }
     this.newColor = '';
   },
@@ -1158,23 +1189,74 @@ Alpine.data('adminPage', () => ({
 
 Alpine.start();
 
+const getGlobalSkeletonHTML = () => {
+  const cards = Array(6).fill(`
+    <div class="bg-white rounded-[16px] overflow-hidden soft-shadow flex flex-col h-full animate-pulse">
+      <div class="aspect-[4/3] bg-gray-200"></div>
+      <div class="p-5 flex-1 flex flex-col gap-3">
+        <div class="h-4 bg-gray-200 rounded w-1/4"></div>
+        <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+        <div class="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+        <div class="mt-auto flex justify-between items-center">
+          <div class="h-6 bg-gray-200 rounded w-1/3"></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="pt-24 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 animate-pulse">
+        <div>
+          <div class="h-10 bg-gray-200 rounded w-64 mb-4"></div>
+          <div class="h-4 bg-gray-200 rounded w-40"></div>
+        </div>
+      </div>
+      
+      <div class="flex gap-8">
+        <aside class="hidden md:block w-64 flex-shrink-0 animate-pulse space-y-8">
+          <div>
+            <div class="h-6 bg-gray-200 rounded w-24 mb-4"></div>
+            <div class="space-y-3">
+              <div class="h-4 bg-gray-200 rounded w-full"></div>
+              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+              <div class="h-4 bg-gray-200 rounded w-full"></div>
+            </div>
+          </div>
+          <div>
+            <div class="h-6 bg-gray-200 rounded w-24 mb-4"></div>
+            <div class="space-y-3">
+              <div class="h-4 bg-gray-200 rounded w-11/12"></div>
+              <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+              <div class="h-4 bg-gray-200 rounded w-full"></div>
+            </div>
+          </div>
+        </aside>
+        <div class="flex-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${cards}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
 // Single Page Application (SPA) Transition Router
 async function navigateTo(url, pushState = true) {
   const main = document.querySelector('main');
   if (!main) return;
 
-  if (document.startViewTransition) {
-    document.startViewTransition(async () => {
-      await performNavigation(url, main, pushState);
-    });
-  } else {
-    main.style.opacity = '0';
-    main.style.transition = 'opacity 150ms ease';
-    setTimeout(async () => {
-      await performNavigation(url, main, pushState);
-      main.style.opacity = '1';
-    }, 150);
-  }
+  // Show skeleton instantly
+  main.innerHTML = getGlobalSkeletonHTML();
+  main.style.opacity = '1';
+  main.style.transition = 'none';
+
+  // Wait a tiny bit for the DOM to paint the skeleton before fetching
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  await performNavigation(url, main, pushState);
 }
 
 async function performNavigation(url, main, pushState) {
@@ -1189,21 +1271,28 @@ async function performNavigation(url, main, pushState) {
 
     const newMain = doc.querySelector('main');
     if (newMain) {
-      // Replace entire DOM node to prevent Alpine state leakage and attribute merging bugs
-      main.parentNode.replaceChild(newMain, main);
-
-      // Update Nav highlighting
-      updateActiveNavLink(url);
-
-      // Re-initialize Alpine tree on new navigation
-      window.Alpine.initTree(newMain);
-
-      // Re-initialize icons
-      createIcons({
-        icons: {
-          ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users
-        }
-      });
+      if (document.startViewTransition) {
+        document.startViewTransition(() => {
+          main.parentNode.replaceChild(newMain, main);
+          updateActiveNavLink(url);
+          window.Alpine.initTree(newMain);
+          createIcons({
+            icons: { ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users }
+          });
+        });
+      } else {
+        newMain.style.opacity = '0';
+        main.parentNode.replaceChild(newMain, main);
+        updateActiveNavLink(url);
+        window.Alpine.initTree(newMain);
+        createIcons({
+          icons: { ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users }
+        });
+        requestAnimationFrame(() => {
+          newMain.style.transition = 'opacity 150ms ease';
+          newMain.style.opacity = '1';
+        });
+      }
 
       if (pushState) {
         window.history.pushState({}, '', url);
