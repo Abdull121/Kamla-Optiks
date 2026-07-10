@@ -435,9 +435,12 @@ Alpine.data('checkoutPage', () => ({
     // Success for both paths
     setTimeout(() => {
       this.isProcessing = false;
-      this.showSuccess = true;
-      this.$store.cart.items = [];
-      this.$store.cart.save();
+      this.showSuccess = true;  // Show success FIRST
+      // Small delay before clearing cart so showSuccess check takes effect
+      setTimeout(() => {
+        this.$store.cart.items = [];
+        this.$store.cart.save();
+      }, 50);
     }, 1500);
   },
   init() {
