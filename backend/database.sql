@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   `product_id` int(11) NOT NULL,
   `quantity` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL,
+  `selected_color` varchar(100) DEFAULT NULL,
+  `selected_size` varchar(100) DEFAULT NULL,
   `lens_option` varchar(100) DEFAULT NULL,
   `prescription_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`prescription_data`)),
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -75,4 +77,11 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `settings` (
+  `setting_key` varchar(50) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 

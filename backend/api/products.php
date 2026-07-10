@@ -18,19 +18,41 @@ function ensureUploadsDir() {
 
 // Helper: save base64 image string to file, return public path
 function saveBase64Image($base64String) {
-    if (empty($base64String) || strpos($base64String, 'data:image') !== 0) {
+    if (empty($base64String) || strpos($base64String, 'data:') !== 0) {
         return $base64String; // Not base64, return as-is (could be a path)
     }
     $uploadDir = ensureUploadsDir();
-    // Extract extension from data URI
-    preg_match('/data:image\/(\w+);base64,/', $base64String, $matches);
-    $ext = isset($matches[1]) ? $matches[1] : 'png';
+    // Extract extension from data URI safely
+    preg_match('/data:image\/([a-zA-Z0-9\+\-\.]+);base64,/', $base64String, $matches);
+    $ext = isset($matches[1]) ? str_replace('+', '', $matches[1]) : 'png';
+    if (strpos($ext, 'svg') !== false) $ext = 'svg';
+    if ($ext === 'jpeg') $ext = 'jpg';
+
     $fileName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-    $data = preg_replace('/^data:image\/\w+;base64,/', '', $base64String);
-    $data = base64_decode($data);
+    
+    // Split by comma to safely get the pure base64 data regardless of MIME type
+    $parts = explode(',', $base64String);
+    if (count($parts) < 2) return '';
+    $data = base64_decode($parts[1]);
+    
     if ($data === false) return '';
     file_put_contents($uploadDir . $fileName, $data);
     return '/uploads/' . $fileName;
+}
+
+// Helper: process colors JSON string, decode base64 images inside, and return updated JSON string
+function processColorsBase64Images($colorsJson) {
+    if (empty($colorsJson) || $colorsJson === '[]') return $colorsJson;
+    $colorsArray = json_decode($colorsJson, true);
+    if (!is_array($colorsArray)) return $colorsJson;
+    
+    foreach ($colorsArray as &$col) {
+        if (isset($col['image']) && strpos($col['image'], 'data:image') === 0) {
+            $col['image'] = saveBase64Image($col['image']);
+        }
+    }
+    
+    return json_encode($colorsArray);
 }
 
 if ($method === 'GET') {
@@ -109,6 +131,7 @@ if ($method === 'GET') {
         $description = $_POST['description'] ?? '';
         $color = $_POST['color'] ?? '';
         $colors = $_POST['colors'] ?? '[]';
+        $colors = processColorsBase64Images($colors);
         $sizes = $_POST['sizes'] ?? '[]';
         
         $in_stock = ($stock_quantity > 0) ? 1 : 0;
@@ -213,13 +236,25 @@ if ($method === 'GET') {
     $stock_quantity = $data['stockQuantity'] ?? 0;
     $delivery_charges = $data['deliveryCharges'] ?? 250;
     $description = $data['description'] ?? '';
-        $color = $data['color'] ?? '';
+    $color = $data['color'] ?? '';
+    $colors = $data['colors'] ?? '[]';
+    $colors = processColorsBase64Images($colors);
+    $sizes = $data['sizes'] ?? '[]';
+    $imagesJson = $data['images'] ?? '[]';
+    
+    // Fallback for multiple images if passed via FormData existingImages
+    if (empty($imagesJson) || $imagesJson === '[]') {
+        if (!empty($imagesPaths)) {
+            $imagesJson = json_encode($imagesPaths);
+        }
+    }
+    
     $in_stock = ($stock_quantity > 0) ? 1 : 0;
     $is_trending = isset($data['isTrending']) && ($data['isTrending'] === 'true' || $data['isTrending'] == 1 || $data['isTrending'] === true) ? 1 : 0;
     
     try {
-        $stmt = $pdo->prepare("UPDATE products SET name=?, sku=?, category_id=?, brand_id=?, price=?, discount_price=?, stock_quantity=?, delivery_charges=?, description=?, image=?, in_stock=?, is_trending=? WHERE id=?");
-        $stmt->execute([$name, $sku, $category_id, $brand_id, $price, $discount_price, $stock_quantity, $delivery_charges, $description, $image, $in_stock, $is_trending, $id]);
+        $stmt = $pdo->prepare("UPDATE products SET name=?, sku=?, category_id=?, brand_id=?, price=?, discount_price=?, stock_quantity=?, delivery_charges=?, description=?, color=?, colors=?, sizes=?, image=?, images=?, in_stock=?, is_trending=? WHERE id=?");
+        $stmt->execute([$name, $sku, $category_id, $brand_id, $price, $discount_price, $stock_quantity, $delivery_charges, $description, $color, $colors, $sizes, $image, $imagesJson, $in_stock, $is_trending, $id]);
         
         echo json_encode(["success" => true, "image" => $image]);
     } catch (PDOException $e) {

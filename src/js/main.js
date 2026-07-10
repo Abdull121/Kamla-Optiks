@@ -24,6 +24,23 @@ window.Alpine = Alpine;
 Alpine.plugin(collapse);
 
 // Initialize global store for Cart and Wishlist
+
+Alpine.store('settings', {
+  globalShippingFee: 250,
+  async init() {
+    if (!USE_REAL_BACKEND) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/settings.php`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.global_shipping_fee) {
+          this.globalShippingFee = parseFloat(data.global_shipping_fee);
+        }
+      }
+    } catch(e) { console.error('Failed to init settings', e); }
+  }
+});
+
 Alpine.store('cart', {
   items: [],
   isOpen: false,
@@ -98,7 +115,7 @@ Alpine.data('homePage', () => ({
   categories: [],
   trendingProducts: [],
   isLoading: false,
-  async init() {
+async init() {
     this.isLoading = true;
     // Start with empty array — do NOT fall back to mock data when real backend is on
     let currentProducts = [];
@@ -171,7 +188,7 @@ Alpine.data('shopPage', () => ({
     this.sortBy = 'newest';
     this.page = 1;
   },
-  async init() {
+async init() {
     this.isLoading = true;
     let fetchedProducts = [];
     if (USE_REAL_BACKEND) {
@@ -213,7 +230,14 @@ Alpine.data('shopPage', () => ({
 }));
 
 Alpine.data('productPage', () => ({
-  product: null,
+  
+    lensType: 'no_eyesight',
+    prescriptionMethod: 'enter',
+    ipd: '',
+    prescriptionImage: '',
+    sphRight: '0', cylRight: '0', axisRight: '0',
+    sphLeft: '0', cylLeft: '0', axisLeft: '0',
+product: null,
   activeImage: '',
   selectedColor: '',
   selectedSize: '',
@@ -237,7 +261,43 @@ Alpine.data('productPage', () => ({
       this.$store.cart.add(item);
     }
   },
-  async init() {
+
+    uploadPrescription(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        alert("File is too large. Please select an image under 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target.result;
+        
+        if (!USE_REAL_BACKEND) {
+          this.prescriptionImage = base64;
+          return;
+        }
+        
+        try {
+          const res = await fetch(`${API_BASE_URL}/upload.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64 })
+          });
+          const data = await res.json();
+          if (res.ok && data.path) {
+            this.prescriptionImage = data.path;
+          } else {
+            alert('Failed to upload image.');
+          }
+        } catch(err) {
+          console.error(err);
+          alert('Error uploading image.');
+        }
+      };
+      reader.readAsDataURL(file);
+    },
+async init() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = parseInt(urlParams.get('id')) || 1;
     let currentProducts = [];
@@ -260,6 +320,22 @@ Alpine.data('productPage', () => ({
         this.product.colors = this.product.colors.map(c => typeof c === 'string' ? { name: c, qty: 10 } : c);
         const availableColor = this.product.colors.find(c => c.qty > 0);
         this.selectedColor = availableColor ? availableColor.name : (this.product.colors[0]?.name || this.product.color || 'Black');
+        
+        // Setup watcher to change image when color changes
+        this.$watch('selectedColor', (newColor) => {
+          const colObj = this.product.colors.find(c => c.name === newColor);
+          if (colObj && colObj.image) {
+            this.activeImage = colObj.image;
+          } else {
+            this.activeImage = this.product.images && this.product.images.length > 0 ? this.product.images[0] : this.product.image;
+          }
+        });
+        
+        // Trigger initial image update if the selected color has an image
+        const initialColObj = this.product.colors.find(c => c.name === this.selectedColor);
+        if (initialColObj && initialColObj.image) {
+          this.activeImage = initialColObj.image;
+        }
       } else {
         this.selectedColor = this.product.color || 'Black';
       }
@@ -308,7 +384,7 @@ Alpine.data('checkoutPage', () => ({
           })),
           subtotal: this.$store.cart.total,
           deliveryCharges: 250,
-          total: this.$store.cart.total + 250
+          total: this.$store.cart.total + this.$store.settings.globalShippingFee
         };
         
         const res = await fetch(`${API_BASE_URL}/checkout.php`, {
@@ -333,7 +409,7 @@ Alpine.data('checkoutPage', () => ({
         phone: this.form.phone,
         address: this.form.address + ', ' + this.form.city + ' ' + this.form.zip,
         date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-        total: this.$store.cart.total + 250,
+        total: this.$store.cart.total + this.$store.settings.globalShippingFee,
         deliveryCharges: 250,
         status: 'Pending',
         items: this.$store.cart.items.map(item => ({
@@ -407,6 +483,7 @@ Alpine.data('dashboardPage', () => {
 
 Alpine.data('adminPage', () => ({
   sidebarOpen: false,
+    settings: { global_shipping_fee: 250.00 },
   activeTab: 'dashboard',
   
   // Products management state
@@ -640,6 +717,19 @@ Alpine.data('adminPage', () => ({
       this.form.images = this.form.images.filter(i => !i.startsWith('data:'));
       if (img.startsWith('data:')) { alert("Please re-select any new images you wanted to keep."); }
     }
+  },
+  handleColorImageUpload(event, index) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File is too large. Please select an image under 2MB for the color variant.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.form.colors[index].image = e.target.result;
+    };
+    reader.readAsDataURL(file);
   },
   handleImageUpload(event) {
     const file = event.target.files[0];
@@ -1109,8 +1199,38 @@ Alpine.data('adminPage', () => ({
       setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
     }
   },
-  
-  async init() {
+
+  async fetchSettings() {
+    if (!USE_REAL_BACKEND) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/settings.php`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.global_shipping_fee) {
+          this.settings.global_shipping_fee = parseFloat(data.global_shipping_fee);
+        }
+      }
+    } catch(e) { console.error('Failed to fetch settings', e); }
+  },
+  async saveSettings() {
+    if (!USE_REAL_BACKEND) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/settings.php`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(this.settings)
+      });
+      if (res.ok) {
+        alert('Settings saved successfully!');
+      } else {
+        alert('Failed to save settings.');
+      }
+    } catch(e) {
+      alert('Error saving settings.');
+    }
+  },
+async init() {
+    this.fetchSettings();
     if (USE_REAL_BACKEND) {
       try {
         const ts = Date.now(); // cache-bust to bypass LiteSpeed cache

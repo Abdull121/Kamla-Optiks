@@ -40,10 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $order_id = $pdo->lastInsertId();
         
         // Insert order items
-        $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price, lens_option, prescription_data) VALUES (?, ?, ?, ?, ?, ?)");
+        $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price, selected_color, selected_size, lens_option, prescription_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         
         foreach ($cart as $item) {
             $lensOption = $item['lensOption'] ?? null;
+            $selectedColor = $item['selectedColor'] ?? null;
+            $selectedSize = $item['selectedSize'] ?? null;
             $prescription = null;
             if (!empty($item['prescription'])) {
                 $prescription = json_encode($item['prescription']);
@@ -52,8 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $itemStmt->execute([
                 $order_id,
                 $item['id'],
-                $item['qty'],
-                $item['price'],
+                $item['quantity'] ?? 1,
+                $item['price'] ?? 0,
+                $selectedColor,
+                $selectedSize,
                 $lensOption,
                 $prescription
             ]);

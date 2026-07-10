@@ -15,6 +15,8 @@ try {
         "colors col"      => "ALTER TABLE products ADD COLUMN colors text DEFAULT NULL AFTER color",
         "sizes col"       => "ALTER TABLE products ADD COLUMN sizes text DEFAULT NULL AFTER colors",
         "images col"      => "ALTER TABLE products ADD COLUMN images text DEFAULT NULL AFTER image",
+        "selected_color col" => "ALTER TABLE order_items ADD COLUMN selected_color varchar(100) DEFAULT NULL AFTER price",
+        "selected_size col" => "ALTER TABLE order_items ADD COLUMN selected_size varchar(100) DEFAULT NULL AFTER selected_color",
     ];
     foreach ($migrations as $label => $sql) {
         try {
@@ -23,6 +25,21 @@ try {
         } catch (PDOException $e) {
             $results[] = "Skipped $label (already exists)";
         }
+    }
+
+    // CREATE settings table
+    $settingsSql = "CREATE TABLE IF NOT EXISTS `settings` (
+      `setting_key` varchar(50) NOT NULL,
+      `setting_value` text DEFAULT NULL,
+      PRIMARY KEY (`setting_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    $pdo->exec($settingsSql);
+    
+    // Seed default settings if empty
+    $stmt = $pdo->query("SELECT COUNT(*) FROM settings");
+    if ($stmt->fetchColumn() == 0) {
+        $pdo->exec("INSERT INTO settings (setting_key, setting_value) VALUES ('global_shipping_fee', '250.00')");
+        $results[] = "Seeded default settings";
     }
 
     // CREATE brands table if it doesn't exist

@@ -178,7 +178,7 @@
     </div>
 
   
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[80vh]" x-data="checkoutPage">
+    <main class="pt-28 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[80vh]" x-data="checkoutPage">
       <div class="flex flex-col lg:flex-row gap-12">
         
         <!-- Checkout Form -->
@@ -260,13 +260,7 @@
                     <input type="radio" name="payment" value="cod" x-model="paymentMethod" class="w-5 h-5 text-black focus:ring-black border-gray-300 accent-black">
                     <span class="font-medium">Cash on Delivery (COD)</span>
                   </label>
-                  <label class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer" :class="paymentMethod === 'bank' ? 'border-black bg-gray-50' : ''">
-                    <input type="radio" name="payment" value="bank" x-model="paymentMethod" class="w-5 h-5 text-black focus:ring-black border-gray-300 accent-black">
-                    <span class="font-medium">Direct Bank Transfer</span>
-                  </label>
-                  <div x-show="paymentMethod === 'bank'" class="p-4 bg-blue-50 text-blue-800 rounded-lg text-sm" x-transition>
-                    Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.
-                  </div>
+                  
                 </div>
               </div>
               
@@ -308,22 +302,13 @@
               </div>
               <div class="flex justify-between text-sm text-gray-600">
                 <span>Shipping</span>
-                <span class="font-medium text-success">Free</span>
-              </div>
-              <div class="flex justify-between text-sm text-gray-600">
-                <span>Tax (Estimated)</span>
-                <span class="font-medium" x-text="'Rs. ' + (0).toFixed(2)"></span>
+                <span class="font-medium" x-text="$store.settings.globalShippingFee === 0 ? 'Free' : 'Rs. ' + $store.settings.globalShippingFee.toFixed(2)" :class="$store.settings.globalShippingFee === 0 ? 'text-success' : 'text-gray-900'"></span>
               </div>
               
-              <!-- Coupon -->
-              <div class="pt-4 flex gap-2">
-                <input type="text" placeholder="Discount code" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black">
-                <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300">Apply</button>
-              </div>
-              
+
               <div class="border-t border-gray-200 pt-4 flex justify-between items-center mt-4">
                 <span class="font-bold text-lg">Total</span>
-                <span class="font-bold text-2xl font-manrope" x-text="'Rs. ' + $store.cart.total.toFixed(2)"></span>
+                <span class="font-bold text-2xl font-manrope" x-text="'Rs. ' + ($store.cart.total + $store.settings.globalShippingFee).toFixed(2)"></span>
               </div>
             </div>
           </div>

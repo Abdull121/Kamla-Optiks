@@ -35,6 +35,8 @@ if ($method === 'GET') {
                         'price' => (float) $item['price'],
                         'qty' => (int) $item['quantity'],
                         'image' => $item['product_image'],
+                        'selectedColor' => $item['selected_color'],
+                        'selectedSize' => $item['selected_size'],
                         'lensOption' => $item['lens_option'],
                         'prescriptionData' => $item['prescription_data'] ? json_decode($item['prescription_data'], true) : null
                     ];
