@@ -219,6 +219,27 @@ if ($method === 'GET') {
         } elseif (isset($_POST['existingImage']) && !empty($_POST['existingImage'])) {
             $image = $_POST['existingImage'];
         }
+        
+        // Handle multiple images upload for update
+        $existingImages = isset($_POST['existingImages']) ? json_decode($_POST['existingImages'], true) : [];
+        if (!is_array($existingImages)) $existingImages = [];
+        
+        $imagesPaths = $existingImages;
+        if (isset($_FILES['images'])) {
+            $uploadDir = ensureUploadsDir();
+            foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
+                if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
+                    $ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
+                    $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+                    if (!in_array($ext, $allowedExts)) $ext = 'png';
+                    $fileName = time() . '_' . bin2hex(random_bytes(4)) . '_' . $key . '.' . $ext;
+                    $targetPath = $uploadDir . $fileName;
+                    if (move_uploaded_file($tmp_name, $targetPath)) {
+                        $imagesPaths[] = '/uploads/' . $fileName;
+                    }
+                }
+            }
+        }
     }
     
     if (!$id) {
@@ -247,6 +268,11 @@ if ($method === 'GET') {
         if (!empty($imagesPaths)) {
             $imagesJson = json_encode($imagesPaths);
         }
+    }
+    
+    // Also sync legacy image if empty
+    if (empty($image) && !empty($imagesPaths)) {
+        $image = $imagesPaths[0];
     }
     
     $in_stock = ($stock_quantity > 0) ? 1 : 0;

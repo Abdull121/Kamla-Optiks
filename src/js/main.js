@@ -2,7 +2,7 @@ import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
 import { createIcons } from 'lucide';
 import {
-  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users
+  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings
 } from 'lucide';
 window.hideGlobalLoader = function() {
   const loader = document.getElementById('full-page-loader');
@@ -12,10 +12,34 @@ window.hideGlobalLoader = function() {
   }
 };
 
+// Fallback to ensure the loader never gets stuck infinitely
+setTimeout(() => {
+  window.hideGlobalLoader();
+}, 5000);
+
 window.getImageUrl = function(path) {
   if (!path || typeof path !== 'string') return 'https://via.placeholder.com/150';
   if (path.startsWith('data:') || path.startsWith('http')) return path;
   return path.startsWith('/') ? path : '/' + path;
+};
+
+window.getColorHex = function(colorName) {
+  if (!colorName) return 'transparent';
+  const name = colorName.toLowerCase().trim();
+  const map = {
+    'brown': '#6b4423',
+    'clear': 'transparent',
+    'tortoise': '#703A12',
+    'gold': '#FFD700',
+    'silver': '#C0C0C0',
+    'gunmetal': '#2a3439',
+    'matte black': '#28282B',
+    'rose gold': '#B76E79',
+    'navy': '#000080',
+    'maroon': '#800000',
+    'transparent': 'transparent'
+  };
+  return map[name] || colorName;
 };
 
 export const USE_REAL_BACKEND = true; // Set to true when deploying to Hostinger
@@ -500,11 +524,10 @@ Alpine.data('dashboardPage', () => {
         if (saved) {
           return JSON.parse(saved);
         } else {
-          localStorage.setItem('kamal_orders', JSON.stringify(defaultOrders));
-          return defaultOrders;
+          return [];
         }
       } catch (e) {
-        return defaultOrders;
+        return [];
       }
     },
     logout() {
@@ -653,6 +676,8 @@ Alpine.data('adminPage', () => ({
   },
   
   openModal(product = null) {
+    this._imageFiles = [];
+    this._imageFile = null;
     this.editingProduct = product;
     if (product) {
       this.form = {
@@ -672,7 +697,7 @@ Alpine.data('adminPage', () => ({
         isTrending: product.isTrending || false,
         colors: (product.colors || (product.color ? [product.color] : [])).map(c => typeof c === 'string' ? { name: c, qty: 10 } : c),
         sizes: product.sizes || [],
-        images: product.images || (product.image ? [product.image] : [])
+        images: (product.images && product.images.length > 0) ? product.images : (product.image ? [product.image] : [])
       };
     } else {
       this.form = {
@@ -850,9 +875,10 @@ Alpine.data('adminPage', () => ({
         // Append the actual single image File if available
         if (this._imageFile) {
           formData.append('image', this._imageFile);
-        } else if (this.form.image && !this.form.image.startsWith('data:')) {
-          // Editing product, image unchanged (it's a URL path)
-          formData.append('existingImage', this.form.image);
+        } else {
+          // Fallback: If no single new image file, extract the first existing image from the multi-image array
+          const existingFirst = (this.form.images && this.form.images.length > 0 && !this.form.images[0].startsWith('data:')) ? this.form.images[0] : '';
+          formData.append('existingImage', existingFirst);
         }
         
         // Append multiple images
@@ -1309,11 +1335,11 @@ async init() {
         if (savedOrders) {
           this.orders = JSON.parse(savedOrders);
         } else {
-          this.orders = [...defaultOrders];
+          this.orders = [];
           localStorage.setItem('kamal_orders', JSON.stringify(this.orders));
         }
       } catch(e) {
-        this.orders = [...defaultOrders];
+        this.orders = [];
       }
     }
 
