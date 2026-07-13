@@ -42,7 +42,7 @@ if ($method === 'POST') {
     
     file_put_contents($uploadDir . $fileName, $fileData);
     
-    echo json_encode(['success' => true, 'path' => '/uploads/' . $fileName]);
+    echo json_encode(['success' => true, 'path' => $fileName]);
 } else {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed']);

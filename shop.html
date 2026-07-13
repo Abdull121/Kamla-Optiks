@@ -237,11 +237,28 @@
             <div>
               <h3 class="font-bold mb-4 font-manrope">Brands</h3>
               <div class="space-y-2">
-                <template x-for="brand in brands" :key="brand.id">
-                  <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" :value="brand.id" x-model="selectedBrands" class="w-5 h-5 rounded border-gray-300 text-accent focus:ring-accent accent-accent cursor-pointer">
-                    <span class="text-gray-600 group-hover:text-black premium-transition" x-text="brand.name"></span>
-                  </label>
+                <!-- Loading state -->
+                <template x-if="isLoading">
+                  <div class="space-y-2">
+                    <div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                    <div class="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                    <div class="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                  </div>
+                </template>
+                <!-- Empty state -->
+                <template x-if="!isLoading && brands.length === 0">
+                  <p class="text-sm text-gray-400 italic">No brands available</p>
+                </template>
+                <!-- Brands list -->
+                <template x-if="!isLoading && brands.length > 0">
+                  <div class="space-y-2">
+                    <template x-for="brand in brands" :key="brand.id">
+                      <label class="flex items-center gap-3 cursor-pointer group">
+                        <input type="checkbox" :value="brand.id" x-model="selectedBrands" class="w-5 h-5 rounded border-gray-300 text-accent focus:ring-accent accent-accent cursor-pointer">
+                        <span class="text-gray-600 group-hover:text-black premium-transition" x-text="brand.name"></span>
+                      </label>
+                    </template>
+                  </div>
                 </template>
               </div>
             </div>

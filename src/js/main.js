@@ -51,7 +51,12 @@ Alpine.store('cart', {
     }
   },
   add(product) {
-    const existing = this.items.find(i => i.id === product.id);
+    const existing = this.items.find(i => 
+      i.id === product.id && 
+      i.selectedColor === product.selectedColor && 
+      i.selectedSize === product.selectedSize &&
+      i.lensOption === product.lensOption
+    );
     if (existing) {
       existing.quantity += 1;
     } else {
@@ -194,12 +199,15 @@ async init() {
     if (USE_REAL_BACKEND) {
       try {
         const ts = Date.now();
-        const res = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
-        if (res.ok) fetchedProducts = await res.json();
-        
-        const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
+        const [productsRes, catRes, brandRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/products.php?_=${ts}`),
+          fetch(`${API_BASE_URL}/categories.php?_=${ts}`),
+          fetch(`${API_BASE_URL}/brands.php?_=${ts}`)
+        ]);
+        if (productsRes.ok) fetchedProducts = await productsRes.json();
         if (catRes.ok) this.categories = await catRes.json();
-      } catch(e) { console.error(e); }
+        if (brandRes.ok) this.brands = await brandRes.json();
+      } catch(e) { console.error('shopPage init error:', e); }
     } else {
       const saved = localStorage.getItem('kamal_products');
       if (saved) fetchedProducts = JSON.parse(saved);
@@ -242,6 +250,7 @@ product: null,
   selectedColor: '',
   selectedSize: '',
   quantity: 1,
+  isUploadingPrescription: false,
   getColorClass(colorName) {
     const map = {
       'Black': 'bg-black',
@@ -257,6 +266,27 @@ product: null,
       selectedColor: this.selectedColor,
       selectedSize: this.selectedSize
     };
+    
+    // Add prescription data if applicable
+    if (this.product.categoryName && this.product.categoryName.toLowerCase() !== 'sunglasses') {
+      item.lensOption = this.lensType;
+      if (this.lensType === 'eyesight') {
+        if (this.prescriptionMethod === 'manual' || this.prescriptionMethod === 'enter') {
+          item.prescription = {
+            type: 'manual',
+            right: { sph: this.sphRight, cyl: this.cylRight, axis: this.axisRight },
+            left: { sph: this.sphLeft, cyl: this.cylLeft, axis: this.axisLeft },
+            ipd: this.ipd
+          };
+        } else if (this.prescriptionMethod === 'upload') {
+          item.prescription = {
+            type: 'upload',
+            image: this.prescriptionImage
+          };
+        }
+      }
+    }
+
     for(let i=0; i<this.quantity; i++){
       this.$store.cart.add(item);
     }
@@ -269,12 +299,15 @@ product: null,
         alert("File is too large. Please select an image under 2MB.");
         return;
       }
+      
+      this.isUploadingPrescription = true;
       const reader = new FileReader();
       reader.onload = async (e) => {
         const base64 = e.target.result;
         
         if (!USE_REAL_BACKEND) {
           this.prescriptionImage = base64;
+          this.isUploadingPrescription = false;
           return;
         }
         
@@ -286,13 +319,15 @@ product: null,
           });
           const data = await res.json();
           if (res.ok && data.path) {
-            this.prescriptionImage = data.path;
+            this.prescriptionImage = `${API_BASE_URL}/image.php?file=${data.path}`;
           } else {
             alert('Failed to upload image.');
           }
         } catch(err) {
           console.error(err);
           alert('Error uploading image.');
+        } finally {
+          this.isUploadingPrescription = false;
         }
       };
       reader.readAsDataURL(file);
@@ -377,13 +412,15 @@ Alpine.data('checkoutPage', () => ({
           },
           cart: this.$store.cart.items.map(item => ({
             id: item.id,
-            qty: item.quantity,
+            quantity: item.quantity,
             price: item.price,
+            selectedColor: item.selectedColor,
+            selectedSize: item.selectedSize,
             lensOption: item.lensOption,
             prescription: item.prescription
           })),
           subtotal: this.$store.cart.total,
-          deliveryCharges: 250,
+          deliveryCharges: this.$store.settings.globalShippingFee,
           total: this.$store.cart.total + this.$store.settings.globalShippingFee
         };
         
@@ -410,13 +447,15 @@ Alpine.data('checkoutPage', () => ({
         address: this.form.address + ', ' + this.form.city + ' ' + this.form.zip,
         date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
         total: this.$store.cart.total + this.$store.settings.globalShippingFee,
-        deliveryCharges: 250,
+        deliveryCharges: this.$store.settings.globalShippingFee,
         status: 'Pending',
         items: this.$store.cart.items.map(item => ({
           name: item.name,
           qty: item.quantity,
           price: item.price,
           image: item.image,
+          selectedColor: item.selectedColor,
+          selectedSize: item.selectedSize,
           lensOption: item.lensOption,
           prescriptionData: item.prescription
         }))
@@ -547,6 +586,7 @@ Alpine.data('adminPage', () => ({
   ordersFilter: 'all',
   ordersSearchQuery: '',
   selectedOrder: null,
+  selectedOrderItem: null, // Track clicked item for detailed view
   isOrderModalOpen: false,
 
   get totalPages() {
@@ -1455,6 +1495,18 @@ document.addEventListener('click', e => {
     
     // Allow default anchor scrolling for same-page hash links
     if (currentUrl.pathname === targetUrl.pathname && targetUrl.hash) {
+      return;
+    }
+
+    // Force hard navigation if switching between admin and public pages
+    const isCurrentAdmin = currentUrl.pathname.includes('admin');
+    const isTargetAdmin = targetUrl.pathname.includes('admin');
+    if (isCurrentAdmin !== isTargetAdmin) {
+      return;
+    }
+
+    // Force hard navigation if link has data-no-route attribute
+    if (link.hasAttribute('data-no-route')) {
       return;
     }
 

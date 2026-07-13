@@ -23,12 +23,13 @@ if ($method === 'GET') {
             $order['subtotal'] = (float) $order['subtotal'];
             $order['deliveryCharges'] = (float) $order['delivery_charges'];
             $order['customerName'] = $order['customer_name'];
+            $order_internal_id = $order['id'];
             $order['id'] = $order['order_number']; // Frontend uses id for order_number string
             $order['date'] = date('F j, Y', strtotime($order['created_at']));
             
             $order['items'] = [];
             foreach ($all_items as $item) {
-                if ($item['order_id'] == $order['id']) {
+                if ($item['order_id'] == $order_internal_id) {
                     $order['items'][] = [
                         'id' => $item['product_id'],
                         'name' => $item['product_name'],
