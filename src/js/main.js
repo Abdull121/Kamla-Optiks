@@ -2,7 +2,7 @@ import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
 import { createIcons } from 'lucide';
 import {
-  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings
+  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter
 } from 'lucide';
 window.hideGlobalLoader = function() {
   const loader = document.getElementById('full-page-loader');
@@ -42,6 +42,17 @@ window.getColorHex = function(colorName) {
   return map[name] || colorName;
 };
 
+
+function assignRandomRatings(products) {
+  products.forEach(p => {
+    if (!p.rating || p.rating === 0 || p.rating === 5 || p.rating === '5') {
+      const idHash = p.id.toString().split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+      p.rating = (4.0 + (idHash % 11) / 10).toFixed(1);
+    }
+  });
+  return products;
+}
+
 export const USE_REAL_BACKEND = true; // Set to true when deploying to Hostinger
 export const API_BASE_URL = '/api';
 window.Alpine = Alpine;
@@ -62,6 +73,24 @@ Alpine.store('settings', {
         }
       }
     } catch(e) { console.error('Failed to init settings', e); }
+  }
+});
+
+Alpine.store('search', {
+  isOpen: false,
+  query: '',
+  toggle() {
+    this.isOpen = !this.isOpen;
+    if (this.isOpen) {
+      setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
+    }
+  },
+  submit(e) {
+    if (e) e.preventDefault();
+    if (this.query.trim()) {
+      window.location.href = '/shop.html?search=' + encodeURIComponent(this.query.trim());
+      this.isOpen = false;
+    }
   }
 });
 
@@ -152,14 +181,14 @@ async init() {
       try {
         const ts = Date.now(); // cache-bust
         const res = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
-        if (res.ok) currentProducts = await res.json();
+        if (res.ok) currentProducts = assignRandomRatings(await res.json());
         
         const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
         if (catRes.ok) this.categories = await catRes.json();
       } catch(e) { console.error(e); }
     } else {
       const saved = localStorage.getItem('kamal_products');
-      if (saved) currentProducts = JSON.parse(saved);
+      if (saved) currentProducts = assignRandomRatings(JSON.parse(saved));
     }
     this.trendingProducts = currentProducts.filter(p => p.isTrending || p.is_trending).slice(0, 8);
     // Only fallback if NOT using real backend
@@ -184,9 +213,14 @@ Alpine.data('shopPage', () => ({
   sortBy: 'newest',
   page: 1,
   itemsPerPage: 12,
+  searchQuery: '',
   
   get filteredProducts() {
     let result = this.products;
+    if (this.searchQuery) {
+      const q = this.searchQuery.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(q) || (p.brandName && p.brandName.toLowerCase().includes(q)));
+    }
     if (this.selectedCategories.length > 0) {
       result = result.filter(p => this.selectedCategories.includes(p.categoryId.toString()) || this.selectedCategories.includes(p.categoryId));
     }
@@ -228,13 +262,13 @@ async init() {
           fetch(`${API_BASE_URL}/categories.php?_=${ts}`),
           fetch(`${API_BASE_URL}/brands.php?_=${ts}`)
         ]);
-        if (productsRes.ok) fetchedProducts = await productsRes.json();
+        if (productsRes.ok) fetchedProducts = assignRandomRatings(await productsRes.json());
         if (catRes.ok) this.categories = await catRes.json();
         if (brandRes.ok) this.brands = await brandRes.json();
       } catch(e) { console.error('shopPage init error:', e); }
     } else {
       const saved = localStorage.getItem('kamal_products');
-      if (saved) fetchedProducts = JSON.parse(saved);
+      if (saved) fetchedProducts = assignRandomRatings(JSON.parse(saved));
     }
     
     const urlParams = new URLSearchParams(window.location.search);
@@ -244,6 +278,11 @@ async init() {
       if (cat) {
         this.selectedCategories = [cat.id.toString()];
       }
+    }
+    
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+      this.searchQuery = searchParam;
     }
 
     this.products = fetchedProducts;
@@ -1466,7 +1505,7 @@ async function performNavigation(url, main, pushState) {
           updateActiveNavLink(url);
           window.Alpine.initTree(newMain);
           createIcons({
-            icons: { ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings }
+            icons: { ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter }
           });
         });
       } else {
@@ -1475,7 +1514,7 @@ async function performNavigation(url, main, pushState) {
         updateActiveNavLink(url);
         window.Alpine.initTree(newMain);
         createIcons({
-          icons: { ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings }
+          icons: { ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter }
         });
         requestAnimationFrame(() => {
           newMain.style.transition = 'opacity 150ms ease';
@@ -1549,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateActiveNavLink(window.location.href);
   createIcons({
     icons: {
-      ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings
+      ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter
     }
   });
 });
