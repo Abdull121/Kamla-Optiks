@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | Kamal Optiks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/css/style.css">
+  <script type="module" src="/src/js/main.js"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen text-primary" x-data="adminLogin">
+  <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-gray-100">
+    <div class="text-center mb-8">
+      <img src="/src/assets/kamla-optics-logo.png" alt="Kamal Optiks" class="h-10 mx-auto mb-4" style="filter: invert(1);">
+      <h1 class="text-2xl font-bold font-manrope">Admin Login</h1>
+      <p class="text-gray-500 mt-2 text-sm">Enter your credentials to access the secure dashboard.</p>
+    </div>
+
+    <form @submit.prevent="login" class="space-y-6">
+      <div x-show="error" class="bg-red-50 text-red-600 p-4 rounded-lg text-sm flex items-center gap-2" style="display: none;">
+        <i data-lucide="alert-circle" class="w-5 h-5"></i>
+        <span x-text="error"></span>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+        <input type="email" x-model="email" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-accent focus:border-accent transition-all" placeholder="admin@kamaloptiks.com">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+        <input type="password" x-model="password" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-accent focus:border-accent transition-all" placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="w-full bg-black text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2" :disabled="isLoading">
+        <span x-show="!isLoading">Secure Login</span>
+        <span x-show="isLoading" class="flex items-center gap-2">
+          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Authenticating...
+        </span>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('adminLogin', () => ({
+        email: '',
+        password: '',
+        error: '',
+        isLoading: false,
+        
+        async login() {
+          this.error = '';
+          this.isLoading = true;
+          try {
+            const res = await fetch('/api/auth.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: this.email, password: this.password })
+            });
+            const data = await res.json();
+            
+            if (res.ok && data.success) {
+              localStorage.setItem('adminToken', data.token);
+              window.location.href = '/admin.html';
+            } else {
+              this.error = data.error || 'Invalid credentials';
+            }
+          } catch (e) {
+            this.error = 'Connection failed. Please try again.';
+          } finally {
+            this.isLoading = false;
+          }
+        }
+      }));
+    });
+  </script>
+</body>
+</html>

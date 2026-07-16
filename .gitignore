@@ -29,3 +29,4 @@ hostinger.md
 deploy_final_*/
 *.zip
 
+.env

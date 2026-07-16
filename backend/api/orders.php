@@ -4,6 +4,12 @@ require_once 'db.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+require_once 'middleware.php';
+if ($method !== 'POST') {
+    verifyAdminToken();
+}
+
+
 if ($method === 'GET') {
     try {
         // Fetch orders

@@ -28,9 +28,12 @@ window.getColorHex = function(colorName) {
   const name = colorName.toLowerCase().trim();
   const map = {
     'brown': '#6b4423',
+    'dark brown': '#3E2723',
+    'light brown': '#b5651d',
     'clear': 'transparent',
     'tortoise': '#703A12',
     'gold': '#FFD700',
+    'golden': '#FFD700',
     'silver': '#C0C0C0',
     'gunmetal': '#2a3439',
     'matte black': '#28282B',
@@ -52,6 +55,26 @@ function assignRandomRatings(products) {
   });
   return products;
 }
+
+
+window.adminFetch = async function(url, options = {}) {
+  const token = localStorage.getItem('adminToken');
+  if (!options.headers) options.headers = {};
+  if (token) {
+    if (options.headers instanceof Headers) {
+      options.headers.append('Authorization', `Bearer ${token}`);
+    } else {
+      options.headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  
+  const response = await fetch(url, options);
+  if (response.status === 401) {
+    localStorage.removeItem('adminToken');
+    window.location.href = '/admin-login.html';
+  }
+  return response;
+};
 
 export const USE_REAL_BACKEND = true; // Set to true when deploying to Hostinger
 export const API_BASE_URL = '/api';
@@ -589,6 +612,10 @@ Alpine.data('adminPage', () => ({
   sidebarOpen: false,
     settings: { global_shipping_fee: 250.00 },
   activeTab: 'dashboard',
+  logout() {
+    localStorage.removeItem('adminToken');
+    window.location.href = '/admin-login.html';
+  },
   
   // Products management state
   searchQuery: '',
@@ -944,12 +971,12 @@ Alpine.data('adminPage', () => ({
         
         if (this.editingProduct) {
           formData.append('id', this.editingProduct.id);
-          res = await fetch(`${API_BASE_URL}/products.php?_method=PUT`, {
+          res = await adminFetch(`${API_BASE_URL}/products.php?_method=PUT`, {
             method: 'POST',
             body: formData
           });
         } else {
-          res = await fetch(`${API_BASE_URL}/products.php`, {
+          res = await adminFetch(`${API_BASE_URL}/products.php`, {
             method: 'POST',
             body: formData
           });
@@ -976,7 +1003,7 @@ Alpine.data('adminPage', () => ({
     if (USE_REAL_BACKEND) {
       try {
         const ts = Date.now();
-        const refreshRes = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
+        const refreshRes = await adminFetch(`${API_BASE_URL}/products.php?_=${ts}`);
         if (refreshRes.ok) this.products = await refreshRes.json();
       } catch(e) { console.error('Refresh error:', e); }
     } else {
@@ -1004,7 +1031,7 @@ Alpine.data('adminPage', () => ({
       this.submittingId = id;
       if (USE_REAL_BACKEND) {
         try {
-          const res = await fetch(`${API_BASE_URL}/products.php?id=${id}&_method=DELETE`, {
+          const res = await adminFetch(`${API_BASE_URL}/products.php?id=${id}&_method=DELETE`, {
             method: 'POST'
           });
           if (!res.ok) {
@@ -1023,7 +1050,7 @@ Alpine.data('adminPage', () => ({
       if (USE_REAL_BACKEND) {
         try {
           const ts = Date.now();
-          const refreshRes = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
+          const refreshRes = await adminFetch(`${API_BASE_URL}/products.php?_=${ts}`);
           if (refreshRes.ok) this.products = await refreshRes.json();
         } catch(e) {
           // Fallback to local filter if refresh fails
@@ -1084,11 +1111,11 @@ Alpine.data('adminPage', () => ({
         }
         if (this.editingCategory) {
           formData.append('id', this.editingCategory.id);
-          res = await fetch(`${API_BASE_URL}/categories.php?_method=PUT`, {
+          res = await adminFetch(`${API_BASE_URL}/categories.php?_method=PUT`, {
             method: 'POST', body: formData
           });
         } else {
-          res = await fetch(`${API_BASE_URL}/categories.php`, {
+          res = await adminFetch(`${API_BASE_URL}/categories.php`, {
             method: 'POST', body: formData
           });
         }
@@ -1112,7 +1139,7 @@ Alpine.data('adminPage', () => ({
     if (USE_REAL_BACKEND) {
       try {
         const ts = Date.now();
-        const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
+        const catRes = await adminFetch(`${API_BASE_URL}/categories.php?_=${ts}`);
         if (catRes.ok) this.categories = await catRes.json();
       } catch(e) { console.error(e); }
     } else {
@@ -1134,7 +1161,7 @@ Alpine.data('adminPage', () => ({
       this.submittingId = 'cat_' + id;
       if (USE_REAL_BACKEND) {
         try {
-          const res = await fetch(`${API_BASE_URL}/categories.php?id=${id}&_method=DELETE`, { method: 'POST' });
+          const res = await adminFetch(`${API_BASE_URL}/categories.php?id=${id}&_method=DELETE`, { method: 'POST' });
           if (!res.ok) { 
             alert('Failed to delete category'); 
             this.submittingId = null;
@@ -1198,11 +1225,11 @@ Alpine.data('adminPage', () => ({
         }
         if (this.editingBrand) {
           formData.append('id', this.editingBrand.id);
-          res = await fetch(`${API_BASE_URL}/brands.php?_method=PUT`, {
+          res = await adminFetch(`${API_BASE_URL}/brands.php?_method=PUT`, {
             method: 'POST', body: formData
           });
         } else {
-          res = await fetch(`${API_BASE_URL}/brands.php`, {
+          res = await adminFetch(`${API_BASE_URL}/brands.php`, {
             method: 'POST', body: formData
           });
         }
@@ -1226,7 +1253,7 @@ Alpine.data('adminPage', () => ({
     if (USE_REAL_BACKEND) {
       try {
         const ts = Date.now();
-        const brandRes = await fetch(`${API_BASE_URL}/brands.php?_=${ts}`);
+        const brandRes = await adminFetch(`${API_BASE_URL}/brands.php?_=${ts}`);
         if (brandRes.ok) this.brands = await brandRes.json();
       } catch(e) { console.error(e); }
     } else {
@@ -1248,7 +1275,7 @@ Alpine.data('adminPage', () => ({
       this.submittingId = 'brand_' + id;
       if (USE_REAL_BACKEND) {
         try {
-          const res = await fetch(`${API_BASE_URL}/brands.php?id=${id}&_method=DELETE`, { method: 'POST' });
+          const res = await adminFetch(`${API_BASE_URL}/brands.php?id=${id}&_method=DELETE`, { method: 'POST' });
           if (!res.ok) {
             alert('Failed to delete brand');
             this.submittingId = null;
@@ -1280,7 +1307,7 @@ Alpine.data('adminPage', () => ({
   async updateOrderStatus(orderId, newStatus) {
     if (USE_REAL_BACKEND) {
       try {
-        const res = await fetch(`${API_BASE_URL}/orders.php`, {
+        const res = await adminFetch(`${API_BASE_URL}/orders.php`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: orderId, status: newStatus })
@@ -1311,7 +1338,7 @@ Alpine.data('adminPage', () => ({
   async fetchSettings() {
     if (!USE_REAL_BACKEND) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/settings.php`);
+      const res = await adminFetch(`${API_BASE_URL}/settings.php`);
       if (res.ok) {
         const data = await res.json();
         if (data.global_shipping_fee) {
@@ -1323,7 +1350,7 @@ Alpine.data('adminPage', () => ({
   async saveSettings() {
     if (!USE_REAL_BACKEND) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/settings.php`, {
+      const res = await adminFetch(`${API_BASE_URL}/settings.php`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(this.settings)
@@ -1342,16 +1369,16 @@ async init() {
     if (USE_REAL_BACKEND) {
       try {
         const ts = Date.now(); // cache-bust to bypass LiteSpeed cache
-        const prodRes = await fetch(`${API_BASE_URL}/products.php?_=${ts}`);
+        const prodRes = await adminFetch(`${API_BASE_URL}/products.php?_=${ts}`);
         if (prodRes.ok) this.products = await prodRes.json();
         
-        const catRes = await fetch(`${API_BASE_URL}/categories.php?_=${ts}`);
+        const catRes = await adminFetch(`${API_BASE_URL}/categories.php?_=${ts}`);
         if (catRes.ok) this.categories = await catRes.json();
 
-        const brandRes = await fetch(`${API_BASE_URL}/brands.php?_=${ts}`);
+        const brandRes = await adminFetch(`${API_BASE_URL}/brands.php?_=${ts}`);
         if (brandRes.ok) this.brands = await brandRes.json();
 
-        const ordRes = await fetch(`${API_BASE_URL}/orders.php?_=${ts}`);
+        const ordRes = await adminFetch(`${API_BASE_URL}/orders.php?_=${ts}`);
         if (ordRes.ok) this.orders = await ordRes.json();
       } catch (err) {
         console.error("Backend fetch error:", err);
@@ -1489,7 +1516,7 @@ async function navigateTo(url, pushState = true) {
 
 async function performNavigation(url, main, pushState) {
   try {
-    const res = await fetch(url);
+    const res = await adminFetch(url);
     if (!res.ok) throw new Error('Failed to fetch page');
     const html = await res.text();
     const parser = new DOMParser();

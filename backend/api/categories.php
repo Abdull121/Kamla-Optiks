@@ -3,6 +3,12 @@
 require_once 'db.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
+
+require_once 'middleware.php';
+if ($method !== 'GET') {
+    verifyAdminToken();
+}
+
 if ($method === 'POST' && isset($_GET['_method'])) {
     $method = strtoupper($_GET['_method']);
 }

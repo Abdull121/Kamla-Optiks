@@ -18,6 +18,7 @@ export default defineConfig({
         faq: resolve(__dirname, 'faq.html'),
         dashboard: resolve(__dirname, 'dashboard.html'),
         admin: resolve(__dirname, 'admin.html'),
+        adminLogin: resolve(__dirname, 'admin-login.html'),
       }
     }
   }
