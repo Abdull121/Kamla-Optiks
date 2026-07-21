@@ -25,24 +25,63 @@ window.getImageUrl = function(path) {
 
 window.getColorHex = function(colorName) {
   if (!colorName) return 'transparent';
-  const name = colorName.toLowerCase().trim();
-  const map = {
-    'brown': '#6b4423',
-    'dark brown': '#3E2723',
-    'light brown': '#b5651d',
-    'clear': 'transparent',
-    'tortoise': '#703A12',
-    'gold': '#FFD700',
-    'golden': '#FFD700',
-    'silver': '#C0C0C0',
-    'gunmetal': '#2a3439',
-    'matte black': '#28282B',
-    'rose gold': '#B76E79',
-    'navy': '#000080',
-    'maroon': '#800000',
-    'transparent': 'transparent'
+  
+  const resolveSingleColor = (str) => {
+    str = str.trim();
+    const map = {
+      'brown': '#6b4423',
+      'dark brown': '#3E2723',
+      'light brown': '#b5651d',
+      'clear': 'transparent',
+      'tortoise': '#703A12',
+      'gold': '#FFD700',
+      'golden': '#FFD700',
+      'silver': '#C0C0C0',
+      'gunmetal': '#2a3439',
+      'matte black': '#28282B',
+      'rose gold': '#B76E79',
+      'navy': '#000080',
+      'maroon': '#800000',
+      'transparent': 'transparent'
+    };
+    if (map[str]) return map[str];
+    if (str.includes('black')) return 'black';
+    if (str.includes('brown')) return '#6b4423';
+    if (str.includes('gold')) return '#FFD700';
+    if (str.includes('silver')) return '#C0C0C0';
+    if (str.includes('blue') || str.includes('navy')) return 'blue';
+    if (str.includes('red') || str.includes('maroon')) return '#e53935';
+    if (str.includes('green')) return 'green';
+    if (str.includes('grey') || str.includes('gray')) return 'gray';
+    if (str.includes('white')) return 'white';
+    if (str.includes('yellow')) return '#FFD700';
+    if (str.includes('pink')) return '#FFC0CB';
+    if (str.includes('purple')) return '#800080';
+    if (str.includes('orange')) return '#FFA500';
+    return null;
   };
-  return map[name] || colorName;
+
+  const name = colorName.toLowerCase().trim();
+  
+  // Check if it's a dual color like "Black & Red" or "Black/Gold" or "Black and Silver"
+  let parts = [];
+  if (name.includes('&')) parts = name.split('&');
+  else if (name.includes('/')) parts = name.split('/');
+  else if (name.includes(' and ')) parts = name.split(' and ');
+  
+  if (parts.length === 2) {
+    const col1 = resolveSingleColor(parts[0]);
+    const col2 = resolveSingleColor(parts[1]);
+    if (col1 && col2) {
+      return `linear-gradient(135deg, ${col1} 50%, ${col2} 50%)`;
+    }
+  }
+
+  // If not dual, or couldn't parse dual, resolve single
+  const single = resolveSingleColor(name);
+  if (single) return single;
+
+  return colorName; // Fallback to raw string
 };
 
 
@@ -85,7 +124,22 @@ Alpine.plugin(collapse);
 
 Alpine.store('settings', {
   globalShippingFee: 250,
+  async refreshOrders() {
+    if (USE_REAL_BACKEND) {
+      try {
+        const ts = Date.now();
+        const ordRes = await adminFetch(`${API_BASE_URL}/orders.php?_=${ts}`);
+        if (ordRes.ok) this.orders = await ordRes.json();
+      } catch (err) {}
+    }
+  },
   async init() {
+    // Auto-refresh orders every 15 seconds if on orders tab
+    setInterval(() => {
+      if (this.activeTab === 'orders') {
+        this.refreshOrders();
+      }
+    }, 15000);
     if (!USE_REAL_BACKEND) return;
     try {
       const res = await fetch(`${API_BASE_URL}/settings.php`);
@@ -324,6 +378,7 @@ async init() {
 }));
 
 Alpine.data('productPage', () => ({
+  formatDescription(text) { return window.formatDescription ? window.formatDescription(text) : text; },
   
     lensType: 'no_eyesight',
     prescriptionMethod: 'enter',
@@ -560,7 +615,8 @@ Alpine.data('checkoutPage', () => ({
     // Success for both paths
     setTimeout(() => {
       this.isProcessing = false;
-      this.showSuccess = true;  // Show success FIRST
+      this.showSuccess = true;
+            setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);  // Show success FIRST
       // Small delay before clearing cart so showSuccess check takes effect
       setTimeout(() => {
         this.$store.cart.items = [];
@@ -1620,3 +1676,29 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+
+window.formatDescription = function(text) {
+  if (!text) return '';
+  
+  let formatted = text;
+  
+  // Convert **bold** to <strong>bold</strong>
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-900 font-bold">$1</strong>');
+  
+  // Convert lines starting with * or - into nice bullet points
+  formatted = formatted.replace(/^\s*[\*\-]\s+(.*)$/gm, '<div class="flex items-start gap-2 mt-2"><span class="text-gray-400 mt-1">&bull;</span><span>$1</span></div>');
+  
+  // Convert horizontal rules *** or ---
+  formatted = formatted.replace(/^\s*(\*\*\*|\-\&\-)\s*$/gm, '<hr class="my-6 border-gray-200">');
+  
+  // Convert newlines to <br> for regular text lines
+  formatted = formatted.split('\n').map(line => {
+      if(line.trim().startsWith('<div') || line.trim().startsWith('<hr')) return line;
+      return line;
+  }).join('<br>');
+  
+  // Clean up excessive <br>
+  formatted = formatted.replace(/(<br>\s*){2,}/g, '<br><br>');
+  
+  return formatted;
+};
