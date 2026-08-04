@@ -4,6 +4,7 @@ import { createIcons } from 'lucide';
 import {
   ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter
 } from 'lucide';
+import logoImgUrl from '../assets/kamla-optics-logo.png';
 window.hideGlobalLoader = function() {
   const loader = document.getElementById('full-page-loader');
   if (loader) {
@@ -732,6 +733,8 @@ Alpine.data('adminPage', () => ({
   ordersSearchQuery: '',
   selectedOrder: null,
   selectedOrderItem: null, // Track clicked item for detailed view
+  imagePreviewUrl: null,
+  imagePreviewTitle: '',
   isOrderModalOpen: false,
 
   get totalPages() {
@@ -1358,6 +1361,163 @@ Alpine.data('adminPage', () => ({
   closeOrderModal() {
     this.isOrderModalOpen = false;
     this.selectedOrder = null;
+  },
+
+  getItemSku(item) {
+    if (!item) return 'N/A';
+    if (item.sku && item.sku.toString().trim() !== '') return item.sku;
+    const found = this.products.find(p => p.id === item.id || p.name === item.name);
+    return (found && found.sku) ? found.sku : 'N/A';
+  },
+
+  printInvoice(orderToPrint) {
+    const order = orderToPrint || this.selectedOrder;
+    if (!order) {
+      alert('Please select an order to print');
+      return;
+    }
+    const itemsHtml = (order.items || []).map((item, index) => `
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px 16px; color: #4b5563;">${index + 1}</td>
+        <td style="padding: 12px 16px;">
+          <div style="font-weight: 700; color: #111827;">${item.name || ''}</div>
+          <div style="font-size: 12px; color: #4b5563; margin-top: 4px;">
+            ${item.selectedColor ? `Color: ${item.selectedColor} ` : ''}
+            ${item.selectedSize ? `| Size: ${item.selectedSize} ` : ''}
+            ${item.lensOption && item.lensOption !== 'no_eyesight' ? `| [Prescription]` : ''}
+          </div>
+        </td>
+        <td style="padding: 12px 16px; font-family: monospace; font-weight: 700; color: #1f2937;">${this.getItemSku(item)}</td>
+        <td style="padding: 12px 16px; text-align: right;">Rs. ${(item.price || 0).toLocaleString()}</td>
+        <td style="padding: 12px 16px; text-align: center; font-weight: 700;">${item.qty || 1}</td>
+        <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #111827;">Rs. ${((item.price || 0) * (item.qty || 1)).toLocaleString()}</td>
+      </tr>
+    `).join('');
+
+    const subtotal = (order.total || 0) - (order.deliveryCharges || 0);
+    const delivery = order.deliveryCharges !== undefined ? order.deliveryCharges : 250;
+    const pageLogoEl = document.querySelector('img[alt*="Kamal Optiks"], img[alt*="Kamla Optiks"], img[src*="kamla-optics-logo"]');
+    const logoUrl = pageLogoEl ? pageLogoEl.src : (window.location.origin + logoImgUrl);
+
+    const win = window.open('', '_blank', 'width=900,height=900');
+    if (!win) {
+      alert('Please allow popups to print the invoice.');
+      return;
+    }
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice - ${order.id || 'Order'}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Inter', sans-serif; color: #111827; background: #fff; padding: 40px; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111827; padding-bottom: 24px; margin-bottom: 24px; }
+          .logo { height: 40px; }
+          .title { font-size: 28px; font-weight: 800; letter-spacing: 1px; color: #111827; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; background: #f9fafb; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 32px; }
+          .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 8px; }
+          table { width: 100%; border-collapse: collapse; border: 1px solid #d1d5db; margin-bottom: 32px; font-size: 14px; }
+          th { background: #f3f4f6; padding: 12px 16px; text-align: left; font-weight: 700; border-bottom: 2px solid #d1d5db; color: #374151; }
+          .totals { display: flex; justify-content: flex-end; }
+          .totals-box { width: 300px; background: #f9fafb; padding: 16px; border-radius: 8px; border: 1px solid #d1d5db; }
+          .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #4b5563; }
+          .row-total { display: flex; justify-content: space-between; border-top: 1px solid #d1d5db; padding-top: 8px; font-size: 16px; font-weight: 800; color: #111827; }
+          .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #d1d5db; display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; }
+          @media print {
+            body { padding: 0; }
+            @page { size: A4; margin: 15mm; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <img src="${logoUrl}" alt="Kamal Optiks Logo" class="logo" />
+            <p style="font-size: 14px; color: #4b5563; font-weight: 600; margin-top: 8px;">Premium Eyewear & Optical Solutions</p>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">Lahore & Karachi, Pakistan | Tel: 042 3587 1210 / +92 21 34624646</p>
+          </div>
+          <div style="text-align: right;">
+            <div class="title">INVOICE</div>
+            <p style="font-size: 14px; font-weight: 700; color: #374151; margin-top: 4px;">Order #: ${order.id || ''}</p>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 2px;">Date: ${order.date || ''}</p>
+            <span style="display: inline-block; margin-top: 8px; padding: 4px 10px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;">${order.status || ''}</span>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div>
+            <div class="label">Billed / Shipped To:</div>
+            <div style="font-size: 18px; font-weight: 700; color: #111827;">${order.customerName || ''}</div>
+            <div style="font-size: 14px; color: #374151; margin-top: 4px;">${order.address || ''}</div>
+            <div style="font-size: 14px; color: #374151; margin-top: 4px;">Phone: ${order.phone || ''}</div>
+            <div style="font-size: 14px; color: #374151;">Email: ${order.email || ''}</div>
+          </div>
+          <div style="text-align: right; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="label">Payment Details:</div>
+              <div style="font-size: 16px; font-weight: 700; color: #111827;">${order.payment || 'Cash on Delivery (COD)'}</div>
+            </div>
+            <div style="font-size: 12px; color: #6b7280; margin-top: 16px;">
+              Thank you for shopping with Kamal Optiks!
+            </div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Product / Details</th>
+              <th>SKU</th>
+              <th style="text-align: right;">Unit Price</th>
+              <th style="text-align: center;">Qty</th>
+              <th style="text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="totals-box">
+            <div class="row">
+              <span>Subtotal:</span>
+              <span style="font-weight: 600; color: #111827;">Rs. ${subtotal.toLocaleString()}</span>
+            </div>
+            <div class="row">
+              <span>Delivery Charges:</span>
+              <span style="font-weight: 600; color: #111827;">Rs. ${delivery.toLocaleString()}</span>
+            </div>
+            <div class="row-total">
+              <span>Total Bill:</span>
+              <span>Rs. ${(order.total || 0).toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>
+            <div style="font-weight: 600; color: #374151;">Terms & Conditions:</div>
+            <div>Returns & exchanges are accepted within 7 days in original condition.</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 700; color: #1f2937;">Authorized Signature ___________________________</div>
+          </div>
+        </div>
+        <script>
+          window.onload = () => {
+            setTimeout(() => {
+              window.print();
+            }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    win.document.close();
   },
 
   async updateOrderStatus(orderId, newStatus) {
