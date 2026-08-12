@@ -572,7 +572,18 @@ Alpine.data('checkoutPage', () => ({
           body: JSON.stringify(payload)
         });
         
-        if (!res.ok) throw new Error("Checkout failed on server");
+        let data = null;
+        try {
+          data = await res.json();
+          console.log("Checkout response:", data);
+          if (data && data.email_debug) {
+            console.log("Brevo API Email Debug Info:", data.email_debug);
+          }
+        } catch (e) {
+          console.error("Failed to parse JSON response:", e);
+        }
+        
+        if (!res.ok) throw new Error((data && data.message) ? data.message : "Checkout failed on server");
       } catch (err) {
         console.error("Checkout error:", err);
         alert("There was an error processing your order. Please try again.");

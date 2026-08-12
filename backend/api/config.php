@@ -3,6 +3,7 @@
 return [
     'ADMIN_EMAIL' => 'admin@kamaloptiks.com',
     'ADMIN_PASSWORD' => 'KamalAdmin2024!',
-    'JWT_SECRET' => 'super_secret_kamal_optiks_key_2024_secure'
+    'JWT_SECRET' => 'super_secret_kamal_optiks_key_2024_secure',
+    'ADMIN_EMAIL_NOTIFICATION' => 'konceptnext99@gmail.com'
 ];
 ?>

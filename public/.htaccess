@@ -41,3 +41,9 @@
 <FilesMatch "\.(html|htm|php)$|^[^\.]+$">
     CacheLookup off
 </FilesMatch>
+
+# Deny access to .env files
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
