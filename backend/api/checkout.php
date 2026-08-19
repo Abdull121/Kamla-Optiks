@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = [
                     "sender" => [
                         "name" => "Kamla Optiks Orders",
-                        "email" => $adminEmail
+                        "email" => "konceptnext99@gmail.com" // Hardcoded verified Brevo sender
                     ],
                     "to" => [
                         [

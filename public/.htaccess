@@ -1,6 +1,10 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
+    # Force HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    
     # Serve persistent uploads via PHP script
     RewriteRule ^uploads/(categories|brands)/([^/]+)$ api/image.php?type=$1&file=$2 [L,QSA]
     RewriteRule ^uploads/([^/]+)$ api/image.php?file=$1 [L,QSA]
