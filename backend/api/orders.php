@@ -10,6 +10,10 @@ if ($method !== 'POST') {
 }
 
 
+if ($method === 'POST' && isset($_GET['_method'])) {
+    $method = strtoupper($_GET['_method']);
+}
+
 if ($method === 'GET') {
     try {
         // Fetch orders
@@ -62,6 +66,7 @@ if ($method === 'GET') {
     $order_number = $data['id'] ?? null; // Frontend passes order string ID as 'id'
     $status = $data['status'] ?? null;
     
+
     if (!$order_number || !$status) {
         http_response_code(400);
         echo json_encode(["error" => "Order ID and Status required"]);
@@ -76,6 +81,28 @@ if ($method === 'GET') {
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode(["error" => "Failed to update order", "message" => $e->getMessage()]);
+    }
+} elseif ($method === 'DELETE') {
+    $order_number = $_GET['id'] ?? null;
+    if (!$order_number) {
+        http_response_code(400);
+        echo json_encode(["error" => "Order ID required for deletion"]);
+        exit;
+    }
+    
+    try {
+        // Delete order items first (if no CASCADE on foreign key)
+        $stmtItems = $pdo->prepare("DELETE FROM order_items WHERE order_id = (SELECT id FROM orders WHERE order_number=?)");
+        $stmtItems->execute([$order_number]);
+        
+        // Delete order
+        $stmt = $pdo->prepare("DELETE FROM orders WHERE order_number=?");
+        $stmt->execute([$order_number]);
+        
+        echo json_encode(["success" => true]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["error" => "Failed to delete order", "message" => $e->getMessage()]);
     }
 }
 ?>

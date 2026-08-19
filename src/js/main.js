@@ -579,6 +579,38 @@ Alpine.data('checkoutPage', () => ({
           if (data && data.email_debug) {
             console.log("Brevo API Email Debug Info:", data.email_debug);
           }
+          
+          if (res.ok && data && data.orderNumber) {
+            const newOrder = {
+              id: data.orderNumber,
+              customerName: this.form.firstName + ' ' + this.form.lastName,
+              email: this.form.email,
+              phone: this.form.phone,
+              address: this.form.address + ', ' + this.form.city + ' ' + this.form.zip,
+              date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+              total: this.$store.cart.total + this.$store.settings.globalShippingFee,
+              deliveryCharges: this.$store.settings.globalShippingFee,
+              status: 'Pending',
+              items: this.$store.cart.items.map(item => ({
+                name: item.name,
+                qty: item.quantity,
+                price: item.price,
+                image: item.image,
+                selectedColor: item.selectedColor,
+                selectedSize: item.selectedSize,
+                lensOption: item.lensOption,
+                prescriptionData: item.prescription
+              }))
+            };
+            try {
+              const saved = localStorage.getItem('kamal_orders');
+              let orders = saved ? JSON.parse(saved) : [];
+              orders.unshift(newOrder);
+              localStorage.setItem('kamal_orders', JSON.stringify(orders));
+            } catch (e) {
+              console.error("Error saving order tracking data:", e);
+            }
+          }
         } catch (e) {
           console.error("Failed to parse JSON response:", e);
         }
@@ -1559,6 +1591,29 @@ Alpine.data('adminPage', () => ({
         this.selectedOrder.status = newStatus;
       }
       setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+    }
+  },
+
+  async deleteOrder(orderId) {
+    if (confirm("Are you sure you want to delete this order?")) {
+      if (USE_REAL_BACKEND) {
+        try {
+          const res = await adminFetch(`${API_BASE_URL}/orders.php?id=${orderId}&_method=DELETE`, {
+            method: 'POST'
+          });
+          if (!res.ok) {
+            alert('Failed to delete order from server');
+            return;
+          }
+        } catch (err) {
+          console.error("Delete order error:", err);
+          return;
+        }
+      }
+      this.orders = this.orders.filter(o => o.id !== orderId);
+      if (!USE_REAL_BACKEND) {
+        localStorage.setItem('kamal_orders', JSON.stringify(this.orders));
+      }
     }
   },
 
