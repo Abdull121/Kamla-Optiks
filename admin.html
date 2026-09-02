@@ -29,8 +29,8 @@
 <body class="bg-[#FAFAFA] text-primary" x-data="adminPage">
   <div id="full-page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-500">
     <div class="flex flex-col items-center gap-4">
-      <i data-lucide="loader-2" class="w-12 h-12 text-black animate-spin"></i>
-      <p class="text-sm font-semibold tracking-wider text-gray-500 uppercase">Loading System...</p>
+      <img src="/src/assets/kamla-optics-logo.png" alt="Loading..." class="w-32 animate-pulse">
+      
     </div>
   </div>
 
@@ -743,7 +743,7 @@
         </div>
 
         <div
-          x-show=\"activeTab !== 'products' && activeTab !== 'orders' && activeTab !== 'dashboard' && activeTab !== 'categories' && activeTab !== 'brands' && activeTab !== 'settings'\"
+          x-show="activeTab !== 'products' && activeTab !== 'orders' && activeTab !== 'dashboard' && activeTab !== 'categories' && activeTab !== 'brands' && activeTab !== 'settings'"
           style="display: none;">
           <div class="bg-white border border-gray-100 shadow-sm rounded-2xl p-12 text-center max-w-lg mx-auto mt-8">
             <div
@@ -1860,3 +1860,5 @@ x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" style=
 </body>
 
 </html>
+
+

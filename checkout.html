@@ -17,8 +17,8 @@
   <body class="bg-background text-primary overflow-x-hidden" x-data="{ mobileMenuOpen: false, scrolled: false }">
   <div id="full-page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-500">
     <div class="flex flex-col items-center gap-4">
-      <i data-lucide="loader-2" class="w-12 h-12 text-black animate-spin"></i>
-      <p class="text-sm font-semibold tracking-wider text-gray-500 uppercase">Loading System...</p>
+      <img src="/src/assets/kamla-optics-logo.png" alt="Loading..." class="w-32 animate-pulse">
+      
     </div>
   </div>
   
@@ -44,12 +44,15 @@
           
           <!-- Desktop Navigation -->
           <nav class="hidden md:flex space-x-8">
-            <a href="/" class="text-sm font-medium hover:text-accent premium-transition">Home</a>
-            <a href="/shop.html" class="text-sm font-medium hover:text-accent premium-transition">Shop</a>
-            <a href="/shop.html?category=sunglasses" class="text-sm font-medium hover:text-accent premium-transition">Sunglasses</a>
-            <a href="/shop.html?category=prescription" class="text-sm font-medium hover:text-accent premium-transition">Prescription</a>
-            <a href="/about.html" class="text-sm font-medium hover:text-accent premium-transition">About</a>
-          </nav>
+
+          <a href="/" class="text-sm font-medium hover:text-accent premium-transition">Home</a>
+          <a href="/shop.html" class="text-sm font-medium hover:text-accent premium-transition">Shop</a>
+          <a href="/shop.html?category=sunglasses" class="text-sm font-medium hover:text-accent premium-transition">Sunglasses</a>
+          <a href="/shop.html?category=optical-frames" class="text-sm font-medium hover:text-accent premium-transition">Optical frames</a>
+          <a href="/shop.html?category=contact-lenses" class="text-sm font-medium hover:text-accent premium-transition">Contact Lenses</a>
+          <a href="/shop.html?category=solutions" class="text-sm font-medium hover:text-accent premium-transition">Solutions</a>
+          <a href="/about.html" class="text-sm font-medium hover:text-accent premium-transition">About</a>
+        </nav>
 
 
           <!-- Icons -->
@@ -95,12 +98,15 @@
         </div>
         
                 <nav class="flex flex-col space-y-6">
-          <a href="/" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="home" class="w-5 h-5"></i> Home</a>
-          <a href="/shop.html" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="shopping-bag" class="w-5 h-5"></i> Shop All</a>
-          <a href="/shop.html?category=sunglasses" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="sun" class="w-5 h-5"></i> Sunglasses</a>
-          <a href="/shop.html?category=prescription" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="file-text" class="w-5 h-5"></i> Prescription</a>
-          <a href="/about.html" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="info" class="w-5 h-5"></i> About Us</a>
-        </nav>
+
+        <a href="/" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="home" class="w-5 h-5"></i> Home</a>
+        <a href="/shop.html" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="shopping-bag" class="w-5 h-5"></i> Shop All</a>
+        <a href="/shop.html?category=sunglasses" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="sun" class="w-5 h-5"></i> Sunglasses</a>
+        <a href="/shop.html?category=optical-frames" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="glasses" class="w-5 h-5"></i> Optical frames</a>
+        <a href="/shop.html?category=contact-lenses" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="scan" class="w-5 h-5"></i> Contact Lenses</a>
+        <a href="/shop.html?category=solutions" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="droplet" class="w-5 h-5"></i> Solutions</a>
+        <a href="/about.html" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="info" class="w-5 h-5"></i> About Us</a>
+      </nav>
 
       </div>
     </div>
@@ -444,4 +450,6 @@
 </body>
 
 </html>
+
+
 

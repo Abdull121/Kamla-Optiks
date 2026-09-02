@@ -77,9 +77,9 @@ try {
     if ($catCountDb == 0) {
         $seedCategories = [
             ['name' => 'Sunglasses', 'slug' => 'sunglasses'],
-            ['name' => 'Eyeglasses', 'slug' => 'eyeglasses'],
+            ['name' => 'Optical frames', 'slug' => 'optical-frames'],
             ['name' => 'Contact Lenses', 'slug' => 'contact-lenses'],
-            ['name' => 'Accessories', 'slug' => 'accessories']
+            ['name' => 'Solutions', 'slug' => 'solutions']
         ];
         $stmt = $pdo->prepare("INSERT INTO categories (name, slug) VALUES (?, ?)");
         foreach ($seedCategories as $c) {

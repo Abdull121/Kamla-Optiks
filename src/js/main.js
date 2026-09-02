@@ -293,6 +293,24 @@ Alpine.data('shopPage', () => ({
   itemsPerPage: 12,
   searchQuery: '',
   
+  get pageTitle() {
+    if (this.searchQuery) return 'Search: ' + this.searchQuery;
+    
+    if (this.selectedCategories.length === 1 && this.categories && this.categories.length > 0) {
+      const catId = this.selectedCategories[0].toString();
+      const cat = this.categories.find(c => c.id.toString() === catId);
+      if (cat) return cat.name;
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const categorySlug = urlParams.get('category');
+    if (categorySlug) {
+      return categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' ');
+    }
+    
+    return 'Shop Collection';
+  },
+  
   get filteredProducts() {
     let result = this.products;
     if (this.searchQuery) {
