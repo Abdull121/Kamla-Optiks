@@ -299,12 +299,6 @@
         </div>
 
         <div class="flex items-center gap-4 mb-6">
-          <div class="flex items-center gap-1">
-            <i data-lucide="star" class="w-5 h-5 fill-yellow-400 text-yellow-400"></i>
-            <span class="font-bold" x-text="product.rating"></span>
-            
-          </div>
-          <span class="text-gray-300">|</span>
           <span x-show="product.inStock" class="text-success font-medium flex items-center gap-1">
             <i data-lucide="check" class="w-4 h-4"></i> In Stock
           </span>
@@ -482,40 +476,7 @@
       </div>
     </div>
 
-    <!-- Specs & Details Tabs -->
-    <div class="border-t border-border pt-12">
-      <h2 class="text-2xl font-bold font-manrope mb-8">Product Specifications</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="bg-gray-50 p-8 rounded-xl">
-          <h3 class="font-bold mb-4">Frame Details</h3>
-          <ul class="space-y-3">
-            <li class="flex justify-between border-b border-gray-200 pb-2"><span
-                class="text-gray-500">Material</span><span class="font-medium" x-text="product.material"></span></li>
-            <li class="flex justify-between border-b border-gray-200 pb-2"><span class="text-gray-500">Shape</span><span
-                class="font-medium" x-text="product.shape"></span></li>
-            <li class="flex justify-between border-b border-gray-200 pb-2"><span
-                class="text-gray-500">Gender</span><span class="font-medium" x-text="product.gender"></span></li>
-            <li x-show="product.color" class="flex justify-between border-b border-gray-200 pb-2"><span
-                class="text-gray-500">Color</span><span class="font-medium" x-text="product.color"></span></li>
-            <li class="flex justify-between pb-2"><span class="text-gray-500">SKU</span><span class="font-medium"
-                x-text="product.sku || ('KO-' + product.id + '00')"></span></li>
-          </ul>
-        </div>
-        <div class="bg-gray-50 p-8 rounded-xl">
-          <h3 class="font-bold mb-4">Measurements</h3>
-          <ul class="space-y-3">
-            <li class="flex justify-between border-b border-gray-200 pb-2"><span class="text-gray-500">Lens
-                Width</span><span class="font-medium">52mm</span></li>
-            <li class="flex justify-between border-b border-gray-200 pb-2"><span class="text-gray-500">Bridge
-                Width</span><span class="font-medium">18mm</span></li>
-            <li class="flex justify-between border-b border-gray-200 pb-2"><span class="text-gray-500">Temple
-                Length</span><span class="font-medium">145mm</span></li>
-            <li class="flex justify-between pb-2"><span class="text-gray-500">Weight</span><span
-                class="font-medium">24g</span></li>
-          </ul>
-        </div>
-      </div>
-    </div>
+
   </main>
 
 
