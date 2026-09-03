@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Details | Kamal Optiks</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Styles -->
+  <script type="module" crossorigin src="/assets/main-Dxoo1ClD.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-8WkaHSL5.css">
+</head>
+
+<body class="bg-background text-primary overflow-x-hidden" x-data="{ mobileMenuOpen: false, scrolled: false }">
+  <div id="full-page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-500">
+    <div class="flex flex-col items-center gap-4">
+      <img src="/assets/kamla-optics-logo-HEh5tD4V.png" alt="Loading..." class="w-32 animate-pulse">
+      
+    </div>
+  </div>
+
+
+  <!-- Navbar -->
+  <header class="fixed w-full z-50 glass-dark premium-transition" :class="{'py-2': scrolled, 'py-4': !scrolled}"
+    @scroll.window="scrolled = (window.pageYOffset > 20)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center">
+        <!-- Mobile Menu Button -->
+        <div class="flex items-center md:hidden">
+          <button @click="mobileMenuOpen = true" class="p-2 hover:bg-gray-100 rounded-full premium-transition">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <!-- Logo -->
+        <div class="flex-shrink-0 flex items-center">
+          <a href="/" class="flex items-center">
+            <img src="/assets/kamla-optics-logo-HEh5tD4V.png" alt="Kamal Optiks Logo" class="h-9 md:h-11 object-contain" />
+          </a>
+        </div>
+
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden md:flex space-x-8">
+
+          <a href="/" class="text-sm font-medium hover:text-accent premium-transition">Home</a>
+          <a href="/shop.html" class="text-sm font-medium hover:text-accent premium-transition">Shop</a>
+          <a href="/shop.html?category=sunglasses" class="text-sm font-medium hover:text-accent premium-transition">Sunglasses</a>
+          <a href="/shop.html?category=optical-frames" class="text-sm font-medium hover:text-accent premium-transition">Optical frames</a>
+          <a href="/shop.html?category=contact-lenses" class="text-sm font-medium hover:text-accent premium-transition">Contact Lenses</a>
+          <a href="/shop.html?category=solutions" class="text-sm font-medium hover:text-accent premium-transition">Solutions</a>
+          <a href="/shop.html?category=under-1999" class="text-sm font-bold text-purple-700 animate-[pulse_1.5s_ease-in-out_infinite] hover:text-accent premium-transition">Under 1999</a>
+          <a href="/shop.html?category=under-2999" class="text-sm font-bold text-purple-700 animate-[pulse_2.5s_ease-in-out_infinite] hover:text-accent premium-transition">Under 2999</a>
+          <a href="/about.html" class="text-sm font-medium hover:text-accent premium-transition">About us</a>
+        </nav>
+
+
+        <!-- Icons -->
+        <div class="flex items-center space-x-2 md:space-x-4">
+          <button @click="$store.search.toggle()" class="p-2 hover:bg-gray-100 rounded-full premium-transition">
+              <i data-lucide="search" class="w-5 h-5"></i>
+            </button>
+          
+          <a href="/dashboard.html#wishlist" class="p-2 hover:bg-gray-100 rounded-full premium-transition">
+            <div class="relative">
+              <i data-lucide="heart" class="w-5 h-5"></i>
+              <span x-show="$store.wishlist.items.length > 0"
+                class="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold"
+                x-text="$store.wishlist.items.length"></span>
+            </div>
+          </a>
+          <button @click="$store.cart.toggle()" class="p-2 hover:bg-gray-100 rounded-full premium-transition relative">
+            <div class="relative">
+              <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+              <span x-show="$store.cart.count > 0"
+                class="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold"
+                x-text="$store.cart.count"></span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- Mobile Menu Overlay -->
+  <div x-show="mobileMenuOpen" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity"
+    x-transition.opacity></div>
+  <div x-show="mobileMenuOpen"
+    class="fixed inset-y-0 left-0 z-[70] w-64 bg-white shadow-2xl transform transition-transform"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="-translate-x-full"
+    x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-300"
+    x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
+    @click.outside="mobileMenuOpen = false">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-8">
+        <span class="text-xl font-bold font-manrope">Menu</span>
+        <button @click="mobileMenuOpen = false" class="p-2 hover:bg-gray-100 rounded-full">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+              <nav class="flex flex-col space-y-6">
+
+        <a href="/" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="home" class="w-5 h-5"></i> Home</a>
+        <a href="/shop.html" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="shopping-bag" class="w-5 h-5"></i> Shop All</a>
+        <a href="/shop.html?category=sunglasses" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="sun" class="w-5 h-5"></i> Sunglasses</a>
+        <a href="/shop.html?category=optical-frames" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="glasses" class="w-5 h-5"></i> Optical frames</a>
+        <a href="/shop.html?category=contact-lenses" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="scan" class="w-5 h-5"></i> Contact Lenses</a>
+        <a href="/shop.html?category=solutions" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="droplet" class="w-5 h-5"></i> Solutions</a>
+        <a href="/shop.html?category=under-1999" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-bold text-purple-700 animate-[pulse_1.5s_ease-in-out_infinite] hover:text-accent transition-colors"><i data-lucide="tag" class="w-5 h-5"></i> Under 1999</a>
+        <a href="/shop.html?category=under-2999" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-bold text-purple-700 animate-[pulse_2.5s_ease-in-out_infinite] hover:text-accent transition-colors"><i data-lucide="tag" class="w-5 h-5"></i> Under 2999</a>
+        <a href="/about.html" @click="mobileMenuOpen = false" class="flex items-center gap-3 text-lg font-medium hover:text-accent transition-colors"><i data-lucide="info" class="w-5 h-5"></i> About Us</a>
+      </nav>
+
+    </div>
+  </div>
+
+
+  <!-- Cart Drawer -->
+  <div x-show="$store.cart.isOpen" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity"
+    x-transition.opacity></div>
+  <div x-show="$store.cart.isOpen"
+    class="fixed inset-y-0 right-0 z-[70] w-full max-w-md bg-white shadow-2xl transform transition-transform flex flex-col"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full"
+    x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-300"
+    x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+    @click.outside="$store.cart.toggle()">
+
+    <div class="p-6 flex justify-between items-center border-b border-border">
+      <h2 class="text-xl font-bold font-manrope">Your Cart (<span x-text="$store.cart.count"></span>)</h2>
+      <button @click="$store.cart.toggle()" class="p-2 hover:bg-gray-100 rounded-full">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6">
+      <template x-if="$store.cart.items.length === 0">
+        <div class="h-full flex flex-col items-center justify-center text-center">
+          <i data-lucide="shopping-cart" class="w-16 h-16 text-gray-300 mb-4"></i>
+          <p class="text-gray-500 mb-6">Your cart is currently empty.</p>
+          <a href="/shop.html" @click="$store.cart.toggle()"
+            class="bg-primary text-white px-8 py-3 rounded-full hover:bg-black premium-transition font-medium">Continue
+            Shopping</a>
+        </div>
+      </template>
+
+      <template x-if="$store.cart.items.length > 0">
+        <ul class="space-y-6">
+          <template x-for="item in $store.cart.items" :key="item.id">
+            <li class="flex gap-4">
+              <div class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                <img :src="item.image" :alt="item.name" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between">
+                    <div class="flex flex-col">
+                      <h3 class="font-bold text-sm" x-text="item.name"></h3>
+                      <p x-show="item.selectedColor" class="text-xs text-gray-500 mt-0.5" x-text="'Color: ' + item.selectedColor"></p>
+                      <p x-show="item.selectedSize" class="text-xs text-gray-500" x-text="'Size: ' + item.selectedSize"></p>
+                    </div>
+                    <button @click="$store.cart.remove(item.id)" class="text-gray-400 hover:text-red-500"><i
+                        data-lucide="x" class="w-4 h-4"></i></button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1" x-text="item.categoryName"></p>
+                </div>
+                <div class="flex justify-between items-end">
+                  <div class="flex items-center border border-gray-200 rounded-full px-2 py-1">
+                    <button @click="$store.cart.updateQuantity(item.id, item.quantity - 1)"
+                      class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black">-</button>
+                    <span class="w-6 text-center text-sm font-medium" x-text="item.quantity"></span>
+                    <button @click="$store.cart.updateQuantity(item.id, item.quantity + 1)"
+                      class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black">+</button>
+                  </div>
+                  <p class="font-bold" x-text="'Rs. ' + (item.price * item.quantity).toFixed(2)"></p>
+                </div>
+              </div>
+            </li>
+          </template>
+        </ul>
+      </template>
+    </div>
+
+    <div class="p-6 border-t border-border bg-gray-50" x-show="$store.cart.items.length > 0">
+      <div class="flex justify-between mb-4">
+        <span class="font-medium text-gray-600">Subtotal</span>
+        <span class="font-bold text-lg" x-text="'Rs. ' + $store.cart.total.toFixed(2)"></span>
+      </div>
+      <p class="text-xs text-gray-500 mb-6">Shipping and taxes calculated at checkout.</p>
+      <a href="/checkout.html" @click="$store.cart.isOpen = false"
+        class="block w-full bg-accent text-white text-center py-4 rounded-full font-bold hover:bg-blue-700 premium-transition hover-lift">
+        Proceed to Checkout
+      </a>
+    </div>
+  </div>
+
+
+  <main class="pt-24 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" x-data="productPage">
+    <!-- Breadcrumbs -->
+    <nav class="flex text-sm text-gray-500 mb-8" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+          <a href="/" class="hover:text-black">Home</a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <i data-lucide="chevron-right" class="w-4 h-4 mx-1"></i>
+            <a href="/shop.html" class="hover:text-black">Shop</a>
+          </div>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <i data-lucide="chevron-right" class="w-4 h-4 mx-1"></i>
+            <span class="text-black font-medium" x-text="product.name"></span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+      <!-- Product Images Gallery -->
+      <div class="flex flex-col-reverse md:flex-row gap-4">
+        <!-- Thumbnails -->
+        <div class="flex md:flex-col gap-4 overflow-x-auto md:overflow-visible w-full md:w-24 flex-shrink-0">
+          <template x-for="(img, idx) in product.images" :key="idx">
+            <button @click="activeImage = img"
+              class="w-20 md:w-24 aspect-square rounded-xl overflow-hidden border-2 flex-shrink-0 premium-transition"
+              :class="activeImage === img ? 'border-accent' : 'border-transparent'">
+              <img :src="img" class="w-full h-full object-cover">
+            </button>
+          </template>
+        </div>
+        <!-- Main Image -->
+        <div
+          class="flex-1 bg-gray-100 rounded-[24px] overflow-hidden relative group cursor-crosshair h-[400px] md:h-[600px]">
+          <img :src="activeImage" :alt="product.name"
+            class="w-full h-full object-cover premium-transition hover:scale-150 transform origin-center">
+          <span x-show="product.discountPrice"
+            class="absolute top-4 left-4 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Sale</span>
+          <button @click="$store.wishlist.toggle(product)"
+            class="absolute top-4 right-4 p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-500 hover:text-red-500 premium-transition">
+            <i data-lucide="heart" class="w-5 h-5"
+              :class="$store.wishlist.has(product.id) ? 'fill-red-500 text-red-500' : ''"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="flex flex-col">
+        <p class="text-accent font-bold tracking-wider uppercase text-sm mb-2" x-text="product.brandName"></p>
+        <h1 class="text-3xl md:text-5xl font-bold font-manrope mb-4" x-text="product.name"></h1>
+                <!-- Dynamic Colors -->
+        <div x-show="product.colors && product.colors.length > 0" class="mb-4">
+          <span class="font-bold block mb-2 flex items-center gap-2">Color: <span class="font-normal text-gray-600" x-text="selectedColor"></span></span>
+          <div class="flex flex-wrap gap-3 mt-2">
+            <template x-for="col in product.colors" :key="col.name">
+              <div class="relative group">
+                <button @click="if(col.qty > 0) selectedColor = col.name" 
+                        :disabled="col.qty <= 0"
+                        class="w-10 h-10 rounded-full border-2 focus:outline-none premium-transition flex items-center justify-center relative overflow-hidden"
+                        :class="[
+                          selectedColor === col.name ? 'border-black scale-110 shadow-md ring-2 ring-black/20' : 'border-transparent ring-1 ring-gray-200 hover:ring-gray-300',
+                          col.qty <= 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:scale-105'
+                        ]"
+                        >
+                  
+                  <span class="absolute inset-0 rounded-full" :style="'background: ' + getColorHex(col.name)"></span>
+                  <!-- Out of stock slash -->
+                  <div x-show="col.qty <= 0" class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-[120%] h-0.5 bg-red-500 rotate-45 transform origin-center shadow-sm"></div>
+                  </div>
+                </button>
+                
+                <!-- Tooltip for out of stock -->
+                <div x-show="col.qty <= 0" class="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  Out of Stock
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+        <p x-show="(!product.colors || product.colors.length === 0) && product.color" class="text-gray-600 mb-4 font-medium" x-text="'Color: ' + product.color"></p>
+
+        <!-- Dynamic Sizes -->
+        <div x-show="product.sizes && product.sizes.length > 0" class="mb-6">
+          <span class="font-bold block mb-2">Size: <span class="font-normal text-gray-600" x-text="selectedSize"></span></span>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="sz in product.sizes" :key="sz">
+              <button @click="selectedSize = sz" 
+                      class="px-4 py-2 border rounded-xl font-medium premium-transition"
+                      :class="selectedSize === sz ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 hover:border-black'">
+                <span x-text="sz"></span>
+              </button>
+            </template>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 mb-6">
+          <span x-show="product.inStock" class="text-success font-medium flex items-center gap-1">
+            <i data-lucide="check" class="w-4 h-4"></i> In Stock
+          </span>
+          <span x-show="!product.inStock" class="text-red-500 font-medium flex items-center gap-1">
+            <i data-lucide="x-circle" class="w-4 h-4"></i> Out of Stock
+          </span>
+        </div>
+
+        <div class="flex items-end gap-4 mb-8">
+          <span class="text-4xl font-bold font-manrope"
+            x-text="'Rs. ' + (product.discountPrice || product.price)"></span>
+          <span x-show="product.discountPrice" class="text-xl text-gray-400 line-through mb-1"
+            x-text="'Rs. ' + product.price"></span>
+        </div>
+
+        <p class="text-gray-600 mb-8 leading-relaxed" x-html="formatDescription(product.description)"></p>
+
+        <!-- Options -->
+        <div class="space-y-6 mb-8 border-y border-border py-8"
+          
+          x-show="product.categoryName && product.categoryName.toLowerCase() === 'optical frames'">
+          <div>
+            <span class="font-bold block mb-4">Select Lense Option</span>
+            <div class="flex flex-col gap-3">
+              <label class="flex items-center gap-3 p-4 border rounded-xl cursor-pointer premium-transition"
+                :class="lensType === 'no_eyesight' ? 'border-black bg-gray-50' : 'border-border hover:border-gray-300'">
+                <input type="radio" name="lensType" value="no_eyesight" x-model="lensType"
+                  class="w-4 h-4 text-black focus:ring-black">
+                <span class="font-medium">A. No Eye Sight</span>
+              </label>
+              <label class="flex items-center gap-3 p-4 border rounded-xl cursor-pointer premium-transition"
+                :class="lensType === 'eyesight' ? 'border-black bg-gray-50' : 'border-border hover:border-gray-300'">
+                <input type="radio" name="lensType" value="eyesight" x-model="lensType"
+                  class="w-4 h-4 text-black focus:ring-black">
+                <span class="font-medium">B. Eye Sight</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Eye Sight Options -->
+          <div x-show="lensType === 'eyesight'" x-collapse class="space-y-6 pt-4 border-t border-border">
+            <div class="flex flex-col gap-3">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="radio" name="prescriptionMethod" value="enter" x-model="prescriptionMethod"
+                  class="w-4 h-4 text-black focus:ring-black">
+                <span class="font-medium">Enter Your Prescription</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="radio" name="prescriptionMethod" value="upload" x-model="prescriptionMethod"
+                  class="w-4 h-4 text-black focus:ring-black">
+                <span class="font-medium">Upload Your Card</span>
+              </label>
+            </div>
+
+            <!-- Upload Card -->
+            <div x-show="prescriptionMethod === 'upload'" class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+              <div class="mb-4">
+                <h4 class="font-bold text-lg flex items-center gap-2"><span class="text-red-500">*</span> Upload your
+                  Eyesight Card</h4>
+                <p class="text-red-500 text-sm mt-2">Note: Numbers higher than 2 Cylinder may charge Extra Amount.</p>
+              </div>
+              <hr class="border-gray-300 mb-4">
+              <div class="mt-4">
+                <input type="file" id="prescriptionFile" class="hidden" accept=".jpg,.jpeg,.png,.pdf" @change="uploadPrescription">
+                <label for="prescriptionFile"
+                  class="inline-flex items-center gap-2 bg-white border border-gray-300 px-6 py-2 cursor-pointer hover:bg-gray-50 premium-transition rounded shadow-sm">
+                  <i data-lucide="upload" class="w-4 h-4"></i> Select file(s)
+                </label>
+                <p class="text-xs text-gray-500 mt-2">(max file size 30 MB)</p>
+              </div>
+              
+              <!-- Uploading state -->
+              <div x-show="isUploadingPrescription" class="mt-4 flex items-center justify-center gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm" style="display: none;">
+                <i data-lucide="loader-2" class="w-5 h-5 text-blue-600 animate-spin"></i>
+                <span class="text-sm font-medium text-gray-700">Uploading your prescription...</span>
+              </div>
+              
+              <!-- Image Preview -->
+              <div x-show="prescriptionImage && !isUploadingPrescription" class="mt-4 p-2 bg-white border border-gray-200 rounded-lg inline-block relative shadow-sm" style="display: none;">
+                <button @click="prescriptionImage = ''" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600 transition">
+                  <i data-lucide="x" class="w-3 h-3"></i>
+                </button>
+                <img :src="prescriptionImage" class="w-32 h-32 object-cover rounded border border-gray-100">
+                <p class="text-xs text-center text-green-600 font-bold mt-2">Uploaded Successfully</p>
+              </div>
+            </div>
+
+            <!-- Enter Prescription -->
+            <div x-show="prescriptionMethod === 'enter'"
+              class="bg-gray-50 p-6 rounded-xl border border-gray-200 overflow-x-auto">
+              <div class="min-w-[400px]">
+                <div class="grid grid-cols-[80px_1fr_1fr_1fr] gap-4 items-center mb-6">
+                  <div></div>
+                  <div class="text-red-600 text-sm font-medium uppercase">SPH</div>
+                  <div class="text-red-600 text-sm font-medium uppercase">CYL</div>
+                  <div class="text-red-600 text-sm font-medium uppercase">AXIS</div>
+
+                  <div class="font-bold text-lg">Right:</div>
+                  <select x-model="sphRight" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option>0</option>
+                    <option>-0.25</option>
+                    <option>-0.50</option>
+                    <option>-0.75</option>
+                    <option>-1.00</option>
+                    <option>-1.25</option>
+                    <option>-1.50</option>
+                    <option>-1.75</option>
+                    <option>-2.00</option>
+                    <option>-2.25</option>
+                    <option>-2.50</option>
+                    <option>-2.75</option>
+                    <option>-3.00</option>
+                    <option>-3.25</option>
+                    <option>-3.50</option>
+                    <option>-3.75</option>
+                    <option>-4.00</option>
+                    <option>-4.25</option>
+                    <option>-4.50</option>
+                    <option>-4.75</option>
+                    <option>-5.00</option>
+                    <option>+0.25</option>
+                    <option>+0.50</option>
+                    <option>+0.75</option>
+                    <option>+1.00</option>
+                    <option>+1.25</option>
+                    <option>+1.50</option>
+                    <option>+1.75</option>
+                    <option>+2.00</option>
+                    <option>+2.25</option>
+                    <option>+2.50</option>
+                    <option>+2.75</option>
+                    <option>+3.00</option>
+                    <option>+3.25</option>
+                    <option>+3.50</option>
+                    <option>+3.75</option>
+                    <option>+4.00</option>
+                    <option>+4.25</option>
+                    <option>+4.50</option>
+                    <option>+4.75</option>
+                    <option>+5.00</option>
+                  </select>
+                  <select x-model="cylRight" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option>0</option>
+                    <option>-0.25</option>
+                    <option>-0.50</option>
+                    <option>-0.75</option>
+                    <option>-1.00</option>
+                    <option>-1.25</option>
+                    <option>-1.50</option>
+                    <option>-1.75</option>
+                    <option>-2.00</option>
+                    <option>-2.25</option>
+                    <option>-2.50</option>
+                    <option>-2.75</option>
+                    <option>-3.00</option>
+                    <option>-3.25</option>
+                    <option>-3.50</option>
+                    <option>-3.75</option>
+                    <option>-4.00</option>
+                    <option>-4.25</option>
+                    <option>-4.50</option>
+                    <option>-4.75</option>
+                    <option>-5.00</option>
+                    <option>+0.25</option>
+                    <option>+0.50</option>
+                    <option>+0.75</option>
+                    <option>+1.00</option>
+                    <option>+1.25</option>
+                    <option>+1.50</option>
+                    <option>+1.75</option>
+                    <option>+2.00</option>
+                    <option>+2.25</option>
+                    <option>+2.50</option>
+                    <option>+2.75</option>
+                    <option>+3.00</option>
+                    <option>+3.25</option>
+                    <option>+3.50</option>
+                    <option>+3.75</option>
+                    <option>+4.00</option>
+                    <option>+4.25</option>
+                    <option>+4.50</option>
+                    <option>+4.75</option>
+                    <option>+5.00</option>
+                  </select>
+                  <select x-model="axisRight" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                    <option>10</option>
+                    <option>11</option>
+                    <option>12</option>
+                    <option>13</option>
+                    <option>14</option>
+                    <option>15</option>
+                    <option>16</option>
+                    <option>17</option>
+                    <option>18</option>
+                    <option>19</option>
+                    <option>20</option>
+                    <option>21</option>
+                    <option>22</option>
+                    <option>23</option>
+                    <option>24</option>
+                    <option>25</option>
+                    <option>26</option>
+                    <option>27</option>
+                    <option>28</option>
+                    <option>29</option>
+                    <option>30</option>
+                    <option>31</option>
+                    <option>32</option>
+                    <option>33</option>
+                    <option>34</option>
+                    <option>35</option>
+                    <option>36</option>
+                    <option>37</option>
+                    <option>38</option>
+                    <option>39</option>
+                    <option>40</option>
+                    <option>41</option>
+                    <option>42</option>
+                    <option>43</option>
+                    <option>44</option>
+                    <option>45</option>
+                    <option>46</option>
+                    <option>47</option>
+                    <option>48</option>
+                    <option>49</option>
+                    <option>50</option>
+                    <option>51</option>
+                    <option>52</option>
+                    <option>53</option>
+                    <option>54</option>
+                    <option>55</option>
+                    <option>56</option>
+                    <option>57</option>
+                    <option>58</option>
+                    <option>59</option>
+                    <option>60</option>
+                    <option>61</option>
+                    <option>62</option>
+                    <option>63</option>
+                    <option>64</option>
+                    <option>65</option>
+                    <option>66</option>
+                    <option>67</option>
+                    <option>68</option>
+                    <option>69</option>
+                    <option>70</option>
+                    <option>71</option>
+                    <option>72</option>
+                    <option>73</option>
+                    <option>74</option>
+                    <option>75</option>
+                    <option>76</option>
+                    <option>77</option>
+                    <option>78</option>
+                    <option>79</option>
+                    <option>80</option>
+                    <option>81</option>
+                    <option>82</option>
+                    <option>83</option>
+                    <option>84</option>
+                    <option>85</option>
+                    <option>86</option>
+                    <option>87</option>
+                    <option>88</option>
+                    <option>89</option>
+                    <option>90</option>
+                    <option>91</option>
+                    <option>92</option>
+                    <option>93</option>
+                    <option>94</option>
+                    <option>95</option>
+                    <option>96</option>
+                    <option>97</option>
+                    <option>98</option>
+                    <option>99</option>
+                    <option>100</option>
+                    <option>101</option>
+                    <option>102</option>
+                    <option>103</option>
+                    <option>104</option>
+                    <option>105</option>
+                    <option>106</option>
+                    <option>107</option>
+                    <option>108</option>
+                    <option>109</option>
+                    <option>110</option>
+                    <option>111</option>
+                    <option>112</option>
+                    <option>113</option>
+                    <option>114</option>
+                    <option>115</option>
+                    <option>116</option>
+                    <option>117</option>
+                    <option>118</option>
+                    <option>119</option>
+                    <option>120</option>
+                    <option>121</option>
+                    <option>122</option>
+                    <option>123</option>
+                    <option>124</option>
+                    <option>125</option>
+                    <option>126</option>
+                    <option>127</option>
+                    <option>128</option>
+                    <option>129</option>
+                    <option>130</option>
+                    <option>131</option>
+                    <option>132</option>
+                    <option>133</option>
+                    <option>134</option>
+                    <option>135</option>
+                    <option>136</option>
+                    <option>137</option>
+                    <option>138</option>
+                    <option>139</option>
+                    <option>140</option>
+                    <option>141</option>
+                    <option>142</option>
+                    <option>143</option>
+                    <option>144</option>
+                    <option>145</option>
+                    <option>146</option>
+                    <option>147</option>
+                    <option>148</option>
+                    <option>149</option>
+                    <option>150</option>
+                    <option>151</option>
+                    <option>152</option>
+                    <option>153</option>
+                    <option>154</option>
+                    <option>155</option>
+                    <option>156</option>
+                    <option>157</option>
+                    <option>158</option>
+                    <option>159</option>
+                    <option>160</option>
+                    <option>161</option>
+                    <option>162</option>
+                    <option>163</option>
+                    <option>164</option>
+                    <option>165</option>
+                    <option>166</option>
+                    <option>167</option>
+                    <option>168</option>
+                    <option>169</option>
+                    <option>170</option>
+                    <option>171</option>
+                    <option>172</option>
+                    <option>173</option>
+                    <option>174</option>
+                    <option>175</option>
+                    <option>176</option>
+                    <option>177</option>
+                    <option>178</option>
+                    <option>179</option>
+                    <option>180</option>
+                  </select>
+
+                  <div class="font-bold text-lg uppercase">Left:</div>
+                  <select x-model="sphLeft" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option>0</option>
+                    <option>-0.25</option>
+                    <option>-0.50</option>
+                    <option>-0.75</option>
+                    <option>-1.00</option>
+                    <option>-1.25</option>
+                    <option>-1.50</option>
+                    <option>-1.75</option>
+                    <option>-2.00</option>
+                    <option>-2.25</option>
+                    <option>-2.50</option>
+                    <option>-2.75</option>
+                    <option>-3.00</option>
+                    <option>-3.25</option>
+                    <option>-3.50</option>
+                    <option>-3.75</option>
+                    <option>-4.00</option>
+                    <option>-4.25</option>
+                    <option>-4.50</option>
+                    <option>-4.75</option>
+                    <option>-5.00</option>
+                    <option>+0.25</option>
+                    <option>+0.50</option>
+                    <option>+0.75</option>
+                    <option>+1.00</option>
+                    <option>+1.25</option>
+                    <option>+1.50</option>
+                    <option>+1.75</option>
+                    <option>+2.00</option>
+                    <option>+2.25</option>
+                    <option>+2.50</option>
+                    <option>+2.75</option>
+                    <option>+3.00</option>
+                    <option>+3.25</option>
+                    <option>+3.50</option>
+                    <option>+3.75</option>
+                    <option>+4.00</option>
+                    <option>+4.25</option>
+                    <option>+4.50</option>
+                    <option>+4.75</option>
+                    <option>+5.00</option>
+                  </select>
+                  <select x-model="cylLeft" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option>0</option>
+                    <option>-0.25</option>
+                    <option>-0.50</option>
+                    <option>-0.75</option>
+                    <option>-1.00</option>
+                    <option>-1.25</option>
+                    <option>-1.50</option>
+                    <option>-1.75</option>
+                    <option>-2.00</option>
+                    <option>-2.25</option>
+                    <option>-2.50</option>
+                    <option>-2.75</option>
+                    <option>-3.00</option>
+                    <option>-3.25</option>
+                    <option>-3.50</option>
+                    <option>-3.75</option>
+                    <option>-4.00</option>
+                    <option>-4.25</option>
+                    <option>-4.50</option>
+                    <option>-4.75</option>
+                    <option>-5.00</option>
+                    <option>+0.25</option>
+                    <option>+0.50</option>
+                    <option>+0.75</option>
+                    <option>+1.00</option>
+                    <option>+1.25</option>
+                    <option>+1.50</option>
+                    <option>+1.75</option>
+                    <option>+2.00</option>
+                    <option>+2.25</option>
+                    <option>+2.50</option>
+                    <option>+2.75</option>
+                    <option>+3.00</option>
+                    <option>+3.25</option>
+                    <option>+3.50</option>
+                    <option>+3.75</option>
+                    <option>+4.00</option>
+                    <option>+4.25</option>
+                    <option>+4.50</option>
+                    <option>+4.75</option>
+                    <option>+5.00</option>
+                  </select>
+                  <select x-model="axisLeft" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                    <option>10</option>
+                    <option>11</option>
+                    <option>12</option>
+                    <option>13</option>
+                    <option>14</option>
+                    <option>15</option>
+                    <option>16</option>
+                    <option>17</option>
+                    <option>18</option>
+                    <option>19</option>
+                    <option>20</option>
+                    <option>21</option>
+                    <option>22</option>
+                    <option>23</option>
+                    <option>24</option>
+                    <option>25</option>
+                    <option>26</option>
+                    <option>27</option>
+                    <option>28</option>
+                    <option>29</option>
+                    <option>30</option>
+                    <option>31</option>
+                    <option>32</option>
+                    <option>33</option>
+                    <option>34</option>
+                    <option>35</option>
+                    <option>36</option>
+                    <option>37</option>
+                    <option>38</option>
+                    <option>39</option>
+                    <option>40</option>
+                    <option>41</option>
+                    <option>42</option>
+                    <option>43</option>
+                    <option>44</option>
+                    <option>45</option>
+                    <option>46</option>
+                    <option>47</option>
+                    <option>48</option>
+                    <option>49</option>
+                    <option>50</option>
+                    <option>51</option>
+                    <option>52</option>
+                    <option>53</option>
+                    <option>54</option>
+                    <option>55</option>
+                    <option>56</option>
+                    <option>57</option>
+                    <option>58</option>
+                    <option>59</option>
+                    <option>60</option>
+                    <option>61</option>
+                    <option>62</option>
+                    <option>63</option>
+                    <option>64</option>
+                    <option>65</option>
+                    <option>66</option>
+                    <option>67</option>
+                    <option>68</option>
+                    <option>69</option>
+                    <option>70</option>
+                    <option>71</option>
+                    <option>72</option>
+                    <option>73</option>
+                    <option>74</option>
+                    <option>75</option>
+                    <option>76</option>
+                    <option>77</option>
+                    <option>78</option>
+                    <option>79</option>
+                    <option>80</option>
+                    <option>81</option>
+                    <option>82</option>
+                    <option>83</option>
+                    <option>84</option>
+                    <option>85</option>
+                    <option>86</option>
+                    <option>87</option>
+                    <option>88</option>
+                    <option>89</option>
+                    <option>90</option>
+                    <option>91</option>
+                    <option>92</option>
+                    <option>93</option>
+                    <option>94</option>
+                    <option>95</option>
+                    <option>96</option>
+                    <option>97</option>
+                    <option>98</option>
+                    <option>99</option>
+                    <option>100</option>
+                    <option>101</option>
+                    <option>102</option>
+                    <option>103</option>
+                    <option>104</option>
+                    <option>105</option>
+                    <option>106</option>
+                    <option>107</option>
+                    <option>108</option>
+                    <option>109</option>
+                    <option>110</option>
+                    <option>111</option>
+                    <option>112</option>
+                    <option>113</option>
+                    <option>114</option>
+                    <option>115</option>
+                    <option>116</option>
+                    <option>117</option>
+                    <option>118</option>
+                    <option>119</option>
+                    <option>120</option>
+                    <option>121</option>
+                    <option>122</option>
+                    <option>123</option>
+                    <option>124</option>
+                    <option>125</option>
+                    <option>126</option>
+                    <option>127</option>
+                    <option>128</option>
+                    <option>129</option>
+                    <option>130</option>
+                    <option>131</option>
+                    <option>132</option>
+                    <option>133</option>
+                    <option>134</option>
+                    <option>135</option>
+                    <option>136</option>
+                    <option>137</option>
+                    <option>138</option>
+                    <option>139</option>
+                    <option>140</option>
+                    <option>141</option>
+                    <option>142</option>
+                    <option>143</option>
+                    <option>144</option>
+                    <option>145</option>
+                    <option>146</option>
+                    <option>147</option>
+                    <option>148</option>
+                    <option>149</option>
+                    <option>150</option>
+                    <option>151</option>
+                    <option>152</option>
+                    <option>153</option>
+                    <option>154</option>
+                    <option>155</option>
+                    <option>156</option>
+                    <option>157</option>
+                    <option>158</option>
+                    <option>159</option>
+                    <option>160</option>
+                    <option>161</option>
+                    <option>162</option>
+                    <option>163</option>
+                    <option>164</option>
+                    <option>165</option>
+                    <option>166</option>
+                    <option>167</option>
+                    <option>168</option>
+                    <option>169</option>
+                    <option>170</option>
+                    <option>171</option>
+                    <option>172</option>
+                    <option>173</option>
+                    <option>174</option>
+                    <option>175</option>
+                    <option>176</option>
+                    <option>177</option>
+                    <option>178</option>
+                    <option>179</option>
+                    <option>180</option>
+                  </select>
+                </div>
+
+                <div class="flex items-center gap-4 mt-6">
+                  <span class="text-sm text-gray-700">Enter IPD</span>
+                  <input type="text" x-model="ipd"
+                    class="w-24 bg-white border border-gray-200 rounded-lg p-2 outline-none focus:border-black">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add to Cart -->
+        <div class="flex gap-4 mb-8">
+          <div class="flex items-center border-2 border-border rounded-xl px-4 py-2 w-32 flex-shrink-0">
+            <button @click="quantity > 1 ? quantity-- : null"
+              class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-black">-</button>
+            <span class="flex-1 text-center font-bold" x-text="quantity"></span>
+            <button @click="quantity++"
+              class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-black">+</button>
+          </div>
+          <button @click="lensType === 'eyesight' && product.categoryName && product.categoryName.toLowerCase() === 'optical frames' ? showLensModal = true : addToCart()" x-show="product.inStock"
+            class="flex-1 bg-black text-white font-bold py-3 md:py-4 rounded-xl shadow-xl hover:bg-gray-800 hover:-translate-y-1 premium-transition flex items-center justify-center gap-2">
+            <i data-lucide="shopping-cart" class="w-5 h-5"></i> <span x-text="lensType === 'eyesight' && product.categoryName && product.categoryName.toLowerCase() === 'optical frames' ? 'Choose Lenses Category' : 'Add to Cart'"></span>
+          </button>
+          <button x-show="!product.inStock" disabled
+            class="flex-1 bg-gray-200 text-gray-500 font-bold py-3 md:py-4 rounded-xl shadow-inner cursor-not-allowed flex items-center justify-center gap-2">
+            <i data-lucide="shopping-cart" class="w-5 h-5"></i> Out of Stock
+          </button>
+        </div>
+
+        <!-- Features -->
+        <ul class="space-y-4 text-sm text-gray-600 bg-gray-50 p-6 rounded-xl">
+          <li class="flex items-center gap-3"><i data-lucide="shield-check" class="w-5 h-5 text-accent"></i> Estimate
+            delivery times: 2-5 days.</li>
+          <li class="flex items-center gap-3"><i data-lucide="truck" class="w-5 h-5 text-accent"></i> Shipping All Over
+            Pakistan</li>
+        </ul>
+      </div>
+    </div>
+
+
+  
+    <!-- Lens Category Modal -->
+    <div x-show="showLensModal" style="display: none;" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm transition-opacity flex items-center justify-center p-4">
+      <div class="bg-white rounded-[24px] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" @click.outside="showLensModal = false">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10 rounded-t-[24px]">
+          <h2 class="text-2xl font-bold">Select Lenses Category</h2>
+          <button @click="showLensModal = false" class="p-2 hover:bg-gray-100 rounded-full premium-transition">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <p class="text-gray-500">Choose the type of lens you would like to include with your prescription frame. Prices will be updated by the store admin.</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            
+            <!-- Anti Glare -->
+            <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
+              :class="selectedLensCategory === 'Anti-Glare' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              <input type="radio" name="lensCat" value="Anti-Glare" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 1000">
+              <img src="/assets/lens_anti_glare-DXSntJd7.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
+              <span class="font-bold text-lg mt-2">Anti-Glare</span>
+              <span class="text-xs text-gray-500 line-clamp-3">Reduces reflections and glare from screens and lights, improving visual clarity.</span>
+              <span class="font-bold text-accent mt-auto">+ Rs. 1000</span>
+              <div x-show="selectedLensCategory === 'Anti-Glare'" class="absolute top-3 right-3 text-black">
+                <i data-lucide="check-circle-2" class="w-6 h-6 fill-current text-white"></i>
+              </div>
+            </label>
+
+            <!-- Blue Cut -->
+            <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
+              :class="selectedLensCategory === 'Blue Cut' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              <input type="radio" name="lensCat" value="Blue Cut" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 1500">
+              <img src="/assets/lens_blue_cut-BxRKdNO9.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
+              <span class="font-bold text-lg mt-2">Blue Cut</span>
+              <span class="text-xs text-gray-500 line-clamp-3">Blocks harmful blue light emitted by digital screens, reducing eye strain and improving sleep.</span>
+              <span class="font-bold text-accent mt-auto">+ Rs. 1500</span>
+              <div x-show="selectedLensCategory === 'Blue Cut'" class="absolute top-3 right-3 text-black">
+                <i data-lucide="check-circle-2" class="w-6 h-6 fill-current text-white"></i>
+              </div>
+            </label>
+
+            <!-- Bifocal -->
+            <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
+              :class="selectedLensCategory === 'Bifocal' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              <input type="radio" name="lensCat" value="Bifocal" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 2000">
+              <img src="/assets/lens_bifocal-De4At7-U.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
+              <span class="font-bold text-lg mt-2">Bifocal</span>
+              <span class="text-xs text-gray-500 line-clamp-3">Lenses with two distinct optical powers, separated by a visible line. Good for near and far vision.</span>
+              <span class="font-bold text-accent mt-auto">+ Rs. 2000</span>
+              <div x-show="selectedLensCategory === 'Bifocal'" class="absolute top-3 right-3 text-black">
+                <i data-lucide="check-circle-2" class="w-6 h-6 fill-current text-white"></i>
+              </div>
+            </label>
+
+            <!-- Progressive -->
+            <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
+              :class="selectedLensCategory === 'Progressive' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              <input type="radio" name="lensCat" value="Progressive" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 2500">
+              <img src="/assets/lens_progressive-C0zfe53D.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
+              <span class="font-bold text-lg mt-2">Progressive</span>
+              <span class="text-xs text-gray-500 line-clamp-3">Seamless gradient of optical powers without visible lines, perfect for multifocal vision.</span>
+              <span class="font-bold text-accent mt-auto">+ Rs. 2500</span>
+              <div x-show="selectedLensCategory === 'Progressive'" class="absolute top-3 right-3 text-black">
+                <i data-lucide="check-circle-2" class="w-6 h-6 fill-current text-white"></i>
+              </div>
+            </label>
+
+            <!-- Transition -->
+            <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
+              :class="selectedLensCategory === 'Transition' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              <input type="radio" name="lensCat" value="Transition" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 3000">
+              <img src="/assets/lens_transition-z7DcviSW.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
+              <span class="font-bold text-lg mt-2">Transition</span>
+              <span class="text-xs text-gray-500 line-clamp-3">Photochromic lenses that automatically darken in sunlight and turn clear indoors.</span>
+              <span class="font-bold text-accent mt-auto">+ Rs. 3000</span>
+              <div x-show="selectedLensCategory === 'Transition'" class="absolute top-3 right-3 text-black">
+                <i data-lucide="check-circle-2" class="w-6 h-6 fill-current text-white"></i>
+              </div>
+            </label>
+
+          </div>
+        </div>
+        
+        <div class="p-6 border-t border-gray-100 bg-gray-50 rounded-b-[24px] flex justify-end gap-4 sticky bottom-0">
+          <button @click="showLensModal = false" class="px-6 py-3 font-bold text-gray-500 hover:text-black premium-transition">Cancel</button>
+          <button @click="addToCart(); showLensModal = false;" 
+            :disabled="!selectedLensCategory"
+            class="px-8 py-3 bg-black text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed premium-transition">
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 border-t border-border pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-12 mb-16">
+        <div class="col-span-1 md:col-span-1">
+          <a href="/" class="flex items-center mb-6">
+            <img src="/assets/kamla-optics-logo-HEh5tD4V.png" alt="Kamal Optiks Logo" class="h-10 md:h-12 object-contain" />
+          </a>
+          <p class="text-gray-500 mb-6">Premium eyewear for the modern generation. Crafted with precision, designed for
+            luxury.</p>
+          <div class="flex gap-4">
+            <a href="#"
+              class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-accent soft-shadow premium-transition">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+              </svg>
+            </a>
+            <a href="#"
+              class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-accent soft-shadow premium-transition">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd"
+                  d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"
+                  clip-rule="evenodd" />
+              </svg>
+            </a>
+            <a href="#"
+              class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-accent soft-shadow premium-transition">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold mb-6">Shop</h4>
+          <ul class="space-y-4">
+            <li><a href="/shop.html" class="text-gray-500 hover:text-black premium-transition">All Products</a></li>
+            <li><a href="/shop.html?category=prescription"
+                class="text-gray-500 hover:text-black premium-transition">Prescription Glasses</a></li>
+            <li><a href="/shop.html?category=sunglasses"
+                class="text-gray-500 hover:text-black premium-transition">Sunglasses</a></li>
+            <li><a href="/shop.html?category=blue-light" class="text-gray-500 hover:text-black premium-transition">Blue
+                Light Glasses</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold mb-6">Support</h4>
+          <ul class="space-y-4">
+            <li><a href="/faq.html" class="text-gray-500 hover:text-black premium-transition">FAQ</a></li>
+            <li><a href="/contact.html" class="text-gray-500 hover:text-black premium-transition">Contact Us</a></li>
+            <li><a href="/shipping-policy.html" class="text-gray-500 hover:text-black premium-transition">Shipping &
+                Returns</a></li>
+            <li><a href="/dashboard.html" class="text-gray-500 hover:text-black premium-transition">Track Order</a></li>
+          </ul>
+        </div>
+
+
+        <div>
+          <h4 class="font-bold mb-6">Our Stores</h4>
+          <ul class="space-y-4 text-sm text-gray-500">
+            <li>
+              <strong class="text-black block mb-1">Lahore</strong>
+              97 D-1 IEP Building, Liberty Round About Gulberg III<br>
+              Tel: 042 3587 1210, 3578 4448<br>
+              WhatsApp: 0320 5759330
+            </li>
+            <li class="pt-2">
+              <strong class="text-black block mb-1">Karachi</strong>
+              9/10, Grace Tower Block 17, Gulistan-e-Johar<br>
+              Tel: +92 21 34624646, +92 21 34622820<br>
+              WhatsApp: 0321-1095541
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold mb-6">Join Our Newsletter</h4>
+          <p class="text-gray-500 mb-4">Get 10% off your first order and stay updated with new collections.</p>
+          <form @submit.prevent="alert('Subscribed successfully!')" class="flex gap-2">
+            <input type="email" placeholder="Enter your email" required
+              class="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-accent premium-transition">
+            <button type="submit"
+              class="bg-black text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-800 premium-transition">Join</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-gray-500 text-sm">© 2026 Kamal Optiks. All rights reserved.</p>
+        <div class="flex gap-6 text-sm">
+          <a href="/privacy-policy.html" class="text-gray-500 hover:text-black premium-transition">Privacy Policy</a>
+          <a href="/terms.html" class="text-gray-500 hover:text-black premium-transition">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+
+  <!-- Floating WhatsApp Button -->
+  <a href="https://wa.me/923205759330" target="_blank" rel="noopener noreferrer"
+    class="fixed bottom-6 right-6 z-[90] bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:bg-[#128C7E] hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
+    <svg viewBox="0 0 24 24" class="w-8 h-8 fill-current" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.487-1.761-1.66-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+    </svg>
+  </a>
+
+
+    <!-- Search Modal -->
+    <div x-show="$store.search.isOpen" style="display: none;" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm transition-opacity" x-transition.opacity>
+      <div class="fixed inset-x-0 top-0 bg-white p-6 shadow-2xl transform transition-transform"
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="-translate-y-full"
+           x-transition:enter-end="translate-y-0"
+           x-transition:leave="transition ease-in duration-300"
+           x-transition:leave-start="translate-y-0"
+           x-transition:leave-end="-translate-y-full"
+           @click.outside="$store.search.isOpen = false">
+        <div class="max-w-4xl mx-auto flex items-center gap-4">
+          <form @submit="$store.search.submit($event)" class="flex-1 relative">
+            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+            <input type="text" id="searchInput" x-model="$store.search.query" placeholder="Search for products, brands..." 
+                   class="w-full bg-gray-100 border-transparent focus:bg-white focus:border-black rounded-full py-4 pl-12 pr-4 text-lg outline-none transition-all">
+          </form>
+          <button @click="$store.search.isOpen = false" class="p-3 hover:bg-gray-100 rounded-full premium-transition flex-shrink-0">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+</body>
+
+</html>
+
+
