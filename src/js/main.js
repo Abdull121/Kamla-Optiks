@@ -85,6 +85,30 @@ window.getColorHex = function(colorName) {
   return colorName; // Fallback to raw string
 };
 
+window.getLensPrice = function(item) {
+  if (!item) return 0;
+  if (item.lensPrice !== undefined && item.lensPrice !== null && Number(item.lensPrice) > 0) {
+    return Number(item.lensPrice);
+  }
+  const map = {
+    'Anti-Glare': 1000,
+    'Blue Cut': 1500,
+    'Bifocal': 2000,
+    'Progressive': 2500,
+    'Transition': 3000
+  };
+  return map[item.lensCategory] || 0;
+};
+
+window.getFramePrice = function(item) {
+  if (!item) return 0;
+  if (item.framePrice !== undefined && item.framePrice !== null) {
+    return Number(item.framePrice);
+  }
+  const lp = window.getLensPrice(item);
+  return Math.max(0, Number(item.price || 0) - lp);
+};
+
 
 function assignRandomRatings(products) {
   products.forEach(p => {
@@ -186,22 +210,24 @@ Alpine.store('cart', {
       i.id === product.id && 
       i.selectedColor === product.selectedColor && 
       i.selectedSize === product.selectedSize &&
-      i.lensOption === product.lensOption
+      i.lensOption === product.lensOption &&
+      i.lensCategory === product.lensCategory
     );
     if (existing) {
       existing.quantity += 1;
     } else {
-      this.items.push({ ...product, quantity: 1 });
+      const cartItemId = product.cartItemId || (product.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4));
+      this.items.push({ ...product, cartItemId, quantity: 1 });
     }
     this.save();
     this.isOpen = true;
   },
-  remove(id) {
-    this.items = this.items.filter(i => i.id !== id);
+  remove(identifier) {
+    this.items = this.items.filter(i => (i.cartItemId ? i.cartItemId !== identifier : i.id !== identifier));
     this.save();
   },
-  updateQuantity(id, qty) {
-    const item = this.items.find(i => i.id === id);
+  updateQuantity(identifier, qty) {
+    const item = this.items.find(i => (i.cartItemId ? i.cartItemId === identifier : i.id === identifier));
     if (item) {
       item.quantity = Math.max(1, qty);
       this.save();
@@ -403,8 +429,8 @@ Alpine.data('productPage', () => ({
     prescriptionMethod: 'enter',
     ipd: '',
     prescriptionImage: '',
-    sphRight: '0', cylRight: '0', axisRight: '0',
-    sphLeft: '0', cylLeft: '0', axisLeft: '0',
+    sphRight: '', cylRight: '', axisRight: '',
+    sphLeft: '', cylLeft: '', axisLeft: '',
   product: null,
   activeImage: '',
   selectedColor: '',
@@ -422,10 +448,31 @@ Alpine.data('productPage', () => ({
     };
     return map[colorName] || 'bg-gray-500';
   },
+    handleAction() {
+    if (this.lensType === 'eyesight' && this.product.categoryName && this.product.categoryName.toLowerCase() === 'optical frames') {
+      if (this.prescriptionMethod === 'enter') {
+        if (!this.sphRight || !this.cylRight || !this.axisRight || !this.sphLeft || !this.cylLeft || !this.axisLeft || !this.ipd) {
+          alert('Please fill out all prescription fields (SPH, CYL, AXIS for both eyes and IPD).');
+          return;
+        }
+      } else if (this.prescriptionMethod === 'upload') {
+        if (!this.prescriptionImage) {
+          alert('Please upload your prescription image.');
+          return;
+        }
+      }
+      this.showLensModal = true;
+    } else {
+      this.addToCart();
+    }
+  },
   addToCart() {
     if (!this.product) return;
+    const baseFramePrice = Number(this.product.discountPrice || this.product.price) || 0;
     const item = { 
       ...this.product,
+      framePrice: baseFramePrice,
+      price: baseFramePrice,
       selectedColor: this.selectedColor,
       selectedSize: this.selectedSize
     };
@@ -434,8 +481,11 @@ Alpine.data('productPage', () => ({
     if (this.product.categoryName && this.product.categoryName.toLowerCase() !== 'sunglasses') {
       item.lensOption = this.lensType;
       if (this.lensType === 'eyesight') {
+        const addedLensPrice = Number(this.lensPrice) || (window.getLensPrice ? window.getLensPrice({ lensCategory: this.selectedLensCategory }) : 0);
         item.lensCategory = this.selectedLensCategory;
-        item.price = item.price + this.lensPrice;
+        item.lensPrice = addedLensPrice;
+        item.framePrice = baseFramePrice;
+        item.price = baseFramePrice + addedLensPrice;
         
         if (this.prescriptionMethod === 'manual' || this.prescriptionMethod === 'enter') {
           item.prescription = {
@@ -450,11 +500,16 @@ Alpine.data('productPage', () => ({
             image: this.prescriptionImage
           };
         }
+      } else {
+        item.lensCategory = null;
+        item.lensPrice = 0;
+        item.framePrice = baseFramePrice;
+        item.price = baseFramePrice;
       }
     }
 
     for(let i=0; i<this.quantity; i++){
-      this.$store.cart.add(item);
+      this.$store.cart.add({ ...item });
     }
   },
 
@@ -578,11 +633,15 @@ Alpine.data('checkoutPage', () => ({
           },
           cart: this.$store.cart.items.map(item => ({
             id: item.id,
+            name: item.name,
             quantity: item.quantity,
             price: item.price,
+            framePrice: window.getFramePrice ? window.getFramePrice(item) : (item.framePrice || item.price),
             selectedColor: item.selectedColor,
             selectedSize: item.selectedSize,
             lensOption: item.lensOption,
+            lensCategory: item.lensCategory,
+            lensPrice: window.getLensPrice ? window.getLensPrice(item) : (item.lensPrice || 0),
             prescription: item.prescription
           })),
           subtotal: this.$store.cart.total,
@@ -619,10 +678,13 @@ Alpine.data('checkoutPage', () => ({
                 name: item.name,
                 qty: item.quantity,
                 price: item.price,
+                framePrice: window.getFramePrice ? window.getFramePrice(item) : (item.framePrice || item.price),
                 image: item.image,
                 selectedColor: item.selectedColor,
                 selectedSize: item.selectedSize,
                 lensOption: item.lensOption,
+                lensCategory: item.lensCategory,
+                lensPrice: window.getLensPrice ? window.getLensPrice(item) : (item.lensPrice || 0),
                 prescriptionData: item.prescription
               }))
             };

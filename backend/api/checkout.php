@@ -44,11 +44,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         foreach ($cart as $item) {
             $lensOption = $item['lensOption'] ?? null;
+            if (!empty($item['lensCategory'])) {
+                $lensOption = $item['lensCategory'];
+            }
             $selectedColor = $item['selectedColor'] ?? null;
             $selectedSize = $item['selectedSize'] ?? null;
             $prescription = null;
             if (!empty($item['prescription'])) {
-                $prescription = json_encode($item['prescription']);
+                $pData = $item['prescription'];
+                if (is_array($pData)) {
+                    if (!empty($item['lensCategory'])) $pData['lensCategory'] = $item['lensCategory'];
+                    if (!empty($item['lensPrice'])) $pData['lensPrice'] = $item['lensPrice'];
+                    $prescription = json_encode($pData);
+                } else {
+                    $prescription = json_encode($pData);
+                }
+            } else if (!empty($item['lensCategory'])) {
+                $prescription = json_encode([
+                    'type' => 'category_only',
+                    'lensCategory' => $item['lensCategory'],
+                    'lensPrice' => $item['lensPrice'] ?? 0
+                ]);
             }
             
             $itemStmt->execute([
@@ -105,7 +121,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $productName = $item['name'] ?? 'Product';
                     if (!empty($item['selectedColor'])) $productName .= " (Color: " . $item['selectedColor'] . ")";
                     if (!empty($item['selectedSize'])) $productName .= " (Size: " . $item['selectedSize'] . ")";
-                    if (!empty($item['lensOption']) && $item['lensOption'] !== 'no_eyesight') $productName .= " [Prescription Added]";
+                    if (!empty($item['lensCategory'])) {
+                        $lensP = !empty($item['lensPrice']) ? " (+Rs. " . number_format($item['lensPrice']) . ")" : "";
+                        $productName .= " [Lens: " . $item['lensCategory'] . $lensP . "]";
+                    } else if (!empty($item['lensOption']) && $item['lensOption'] !== 'no_eyesight') {
+                        $productName .= " [Prescription Added]";
+                    }
                     
                     $htmlContent .= "<tr>";
                     $htmlContent .= "<td>" . htmlspecialchars($productName) . "</td>";

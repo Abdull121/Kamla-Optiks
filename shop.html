@@ -154,9 +154,18 @@
                   <div>
                     <div class="flex justify-between">
                       <h3 class="font-bold text-sm" x-text="item.name"></h3>
-                      <button @click="$store.cart.remove(item.id)" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+                      <button @click="$store.cart.remove(item.cartItemId || item.id)" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
                     </div>
                     <p class="text-xs text-gray-500 mt-1" x-text="item.categoryName"></p>
+
+                    <!-- Lens Category Badge in Cart Drawer -->
+                    <template x-if="item.lensOption === 'eyesight' || item.lensCategory">
+                      <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-xs font-semibold text-blue-700">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block"></span>
+                        <span x-text="item.lensCategory ? item.lensCategory + ' Lens' : 'Prescription Lens'"></span>
+                        <span class="text-blue-500 font-normal" x-text="'+ Rs. ' + (window.getLensPrice ? window.getLensPrice(item) : (item.lensPrice || 0)).toLocaleString()"></span>
+                      </div>
+                    </template>
                   </div>
                   <div class="flex justify-between items-end">
                     <div class="flex items-center border border-gray-200 rounded-full px-2 py-1">

@@ -160,17 +160,26 @@
               </div>
               <div class="flex-1 flex flex-col justify-between">
                 <div>
-                  <div class="flex justify-between">
-                    <div class="flex flex-col">
-                      <h3 class="font-bold text-sm" x-text="item.name"></h3>
-                      <p x-show="item.selectedColor" class="text-xs text-gray-500 mt-0.5" x-text="'Color: ' + item.selectedColor"></p>
-                      <p x-show="item.selectedSize" class="text-xs text-gray-500" x-text="'Size: ' + item.selectedSize"></p>
+                    <div class="flex justify-between">
+                      <div class="flex flex-col">
+                        <h3 class="font-bold text-sm" x-text="item.name"></h3>
+                        <p x-show="item.selectedColor" class="text-xs text-gray-500 mt-0.5" x-text="'Color: ' + item.selectedColor"></p>
+                        <p x-show="item.selectedSize" class="text-xs text-gray-500" x-text="'Size: ' + item.selectedSize"></p>
+                      </div>
+                      <button @click="$store.cart.remove(item.cartItemId || item.id)" class="text-gray-400 hover:text-red-500"><i
+                          data-lucide="x" class="w-4 h-4"></i></button>
                     </div>
-                    <button @click="$store.cart.remove(item.id)" class="text-gray-400 hover:text-red-500"><i
-                        data-lucide="x" class="w-4 h-4"></i></button>
+                    <p class="text-xs text-gray-500 mt-1" x-text="item.categoryName"></p>
+
+                    <!-- Lens Category Badge in Cart Drawer -->
+                    <template x-if="item.lensOption === 'eyesight' || item.lensCategory">
+                      <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-xs font-semibold text-blue-700">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block"></span>
+                        <span x-text="item.lensCategory ? item.lensCategory + ' Lens' : 'Prescription Lens'"></span>
+                        <span class="text-blue-500 font-normal" x-text="'+ Rs. ' + (window.getLensPrice ? window.getLensPrice(item) : (item.lensPrice || 0)).toLocaleString()"></span>
+                      </div>
+                    </template>
                   </div>
-                  <p class="text-xs text-gray-500 mt-1" x-text="item.categoryName"></p>
-                </div>
                 <div class="flex justify-between items-end">
                   <div class="flex items-center border border-gray-200 rounded-full px-2 py-1">
                     <button @click="$store.cart.updateQuantity(item.id, item.quantity - 1)"
@@ -402,6 +411,7 @@
 
                   <div class="font-bold text-lg">Right:</div>
                   <select x-model="sphRight" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option value="" disabled selected>Select</option>
                     <option>0</option>
                     <option>-0.25</option>
                     <option>-0.50</option>
@@ -445,6 +455,7 @@
                     <option>+5.00</option>
                   </select>
                   <select x-model="cylRight" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option value="" disabled selected>Select</option>
                     <option>0</option>
                     <option>-0.25</option>
                     <option>-0.50</option>
@@ -488,6 +499,7 @@
                     <option>+5.00</option>
                   </select>
                   <select x-model="axisRight" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option value="" disabled selected>Select</option>
                     <option>0</option>
                     <option>1</option>
                     <option>2</option>
@@ -673,6 +685,7 @@
 
                   <div class="font-bold text-lg uppercase">Left:</div>
                   <select x-model="sphLeft" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option value="" disabled selected>Select</option>
                     <option>0</option>
                     <option>-0.25</option>
                     <option>-0.50</option>
@@ -716,6 +729,7 @@
                     <option>+5.00</option>
                   </select>
                   <select x-model="cylLeft" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option value="" disabled selected>Select</option>
                     <option>0</option>
                     <option>-0.25</option>
                     <option>-0.50</option>
@@ -759,6 +773,7 @@
                     <option>+5.00</option>
                   </select>
                   <select x-model="axisLeft" class="w-full bg-white border border-gray-200 rounded-lg p-3 outline-none focus:border-black">
+                    <option value="" disabled selected>Select</option>
                     <option>0</option>
                     <option>1</option>
                     <option>2</option>
@@ -962,7 +977,7 @@
             <button @click="quantity++"
               class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-black">+</button>
           </div>
-          <button @click="lensType === 'eyesight' && product.categoryName && product.categoryName.toLowerCase() === 'optical frames' ? showLensModal = true : addToCart()" x-show="product.inStock"
+          <button @click="handleAction()" x-show="product.inStock"
             class="flex-1 bg-black text-white font-bold py-3 md:py-4 rounded-xl shadow-xl hover:bg-gray-800 hover:-translate-y-1 premium-transition flex items-center justify-center gap-2">
             <i data-lucide="shopping-cart" class="w-5 h-5"></i> <span x-text="lensType === 'eyesight' && product.categoryName && product.categoryName.toLowerCase() === 'optical frames' ? 'Choose Lenses Category' : 'Add to Cart'"></span>
           </button>
@@ -1001,7 +1016,8 @@
             
             <!-- Anti Glare -->
             <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
-              :class="selectedLensCategory === 'Anti-Glare' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              :class="selectedLensCategory === 'Anti-Glare' ? 'border-black bg-gray-50 ring-2 ring-black' : 'border-gray-200 hover:border-gray-300'"
+              @click="selectedLensCategory = 'Anti-Glare'; lensPrice = 1000">
               <input type="radio" name="lensCat" value="Anti-Glare" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 1000">
               <img src="/src/assets/lens_anti_glare.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
               <span class="font-bold text-lg mt-2">Anti-Glare</span>
@@ -1014,7 +1030,8 @@
 
             <!-- Blue Cut -->
             <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
-              :class="selectedLensCategory === 'Blue Cut' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              :class="selectedLensCategory === 'Blue Cut' ? 'border-black bg-gray-50 ring-2 ring-black' : 'border-gray-200 hover:border-gray-300'"
+              @click="selectedLensCategory = 'Blue Cut'; lensPrice = 1500">
               <input type="radio" name="lensCat" value="Blue Cut" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 1500">
               <img src="/src/assets/lens_blue_cut.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
               <span class="font-bold text-lg mt-2">Blue Cut</span>
@@ -1027,7 +1044,8 @@
 
             <!-- Bifocal -->
             <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
-              :class="selectedLensCategory === 'Bifocal' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              :class="selectedLensCategory === 'Bifocal' ? 'border-black bg-gray-50 ring-2 ring-black' : 'border-gray-200 hover:border-gray-300'"
+              @click="selectedLensCategory = 'Bifocal'; lensPrice = 2000">
               <input type="radio" name="lensCat" value="Bifocal" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 2000">
               <img src="/src/assets/lens_bifocal.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
               <span class="font-bold text-lg mt-2">Bifocal</span>
@@ -1040,7 +1058,8 @@
 
             <!-- Progressive -->
             <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
-              :class="selectedLensCategory === 'Progressive' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              :class="selectedLensCategory === 'Progressive' ? 'border-black bg-gray-50 ring-2 ring-black' : 'border-gray-200 hover:border-gray-300'"
+              @click="selectedLensCategory = 'Progressive'; lensPrice = 2500">
               <input type="radio" name="lensCat" value="Progressive" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 2500">
               <img src="/src/assets/lens_progressive.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
               <span class="font-bold text-lg mt-2">Progressive</span>
@@ -1053,7 +1072,8 @@
 
             <!-- Transition -->
             <label class="relative border-2 rounded-xl p-4 cursor-pointer premium-transition flex flex-col items-center text-center gap-3"
-              :class="selectedLensCategory === 'Transition' ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-gray-300'">
+              :class="selectedLensCategory === 'Transition' ? 'border-black bg-gray-50 ring-2 ring-black' : 'border-gray-200 hover:border-gray-300'"
+              @click="selectedLensCategory = 'Transition'; lensPrice = 3000">
               <input type="radio" name="lensCat" value="Transition" class="hidden" x-model="selectedLensCategory" @change="lensPrice = 3000">
               <img src="/src/assets/lens_transition.jpg" class="w-24 h-24 object-cover rounded-full shadow-sm">
               <span class="font-bold text-lg mt-2">Transition</span>

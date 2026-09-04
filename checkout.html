@@ -154,15 +154,31 @@
                   <div>
                     <div class="flex justify-between">
                       <h3 class="font-bold text-sm" x-text="item.name"></h3>
-                      <button @click="$store.cart.remove(item.id)" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+                      <button @click="$store.cart.remove(item.cartItemId || item.id)" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
                     </div>
                     <p class="text-xs text-gray-500 mt-1" x-text="item.categoryName"></p>
+
+                    <!-- Lens Category Badge in Cart Drawer -->
+                    <template x-if="item.lensOption === 'eyesight' || item.lensCategory">
+                      <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-xs font-semibold text-blue-700">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block"></span>
+                        <span x-text="item.lensCategory ? item.lensCategory + ' Lens' : 'Prescription Lens'"></span>
+                        <span class="text-blue-500 font-normal" x-text="'+ Rs. ' + (window.getLensPrice ? window.getLensPrice(item) : (item.lensPrice || 0)).toLocaleString()"></span>
+                      </div>
+                    </template>
+
+                    <!-- Color & Size in Drawer -->
+                    <div x-show="item.selectedColor || item.selectedSize" class="text-[11px] text-gray-400 mt-1">
+                      <span x-show="item.selectedColor" x-text="'Color: ' + item.selectedColor"></span>
+                      <span x-show="item.selectedColor && item.selectedSize"> • </span>
+                      <span x-show="item.selectedSize" x-text="'Size: ' + item.selectedSize"></span>
+                    </div>
                   </div>
-                  <div class="flex justify-between items-end">
+                  <div class="flex justify-between items-end mt-2">
                     <div class="flex items-center border border-gray-200 rounded-full px-2 py-1">
-                      <button @click="$store.cart.updateQuantity(item.id, item.quantity - 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black">-</button>
+                      <button @click="$store.cart.updateQuantity(item.cartItemId || item.id, item.quantity - 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black">-</button>
                       <span class="w-6 text-center text-sm font-medium" x-text="item.quantity"></span>
-                      <button @click="$store.cart.updateQuantity(item.id, item.quantity + 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black">+</button>
+                      <button @click="$store.cart.updateQuantity(item.cartItemId || item.id, item.quantity + 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black">+</button>
                     </div>
                     <p class="font-bold" x-text="'Rs. ' + (item.price * item.quantity).toFixed(2)"></p>
                   </div>
@@ -299,18 +315,73 @@
           <div class="bg-gray-50 p-6 md:p-8 rounded-2xl border border-border sticky top-8">
             <h2 class="text-xl font-bold font-manrope mb-6">Order Summary</h2>
             
-            <ul class="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2">
-              <template x-for="item in $store.cart.items" :key="item.id">
-                <li class="flex gap-4">
-                  <div class="w-16 h-16 bg-white rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 relative">
+            <ul class="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2 divide-y divide-gray-200/60">
+              <template x-for="(item, idx) in $store.cart.items" :key="item.cartItemId || (item.id + '_' + (item.lensCategory || '') + '_' + idx)">
+                <li class="pt-3.5 first:pt-0 flex gap-3.5 items-start">
+                  <div class="w-16 h-16 bg-white rounded-xl overflow-hidden border border-gray-200 flex-shrink-0 relative shadow-sm">
                     <img :src="item.image" class="w-full h-full object-cover">
-                    <span class="absolute -top-2 -right-2 bg-gray-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center" x-text="item.quantity"></span>
+                    <span class="absolute -top-1.5 -right-1.5 bg-gray-900 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow" x-text="item.quantity"></span>
                   </div>
-                  <div class="flex-1 flex flex-col justify-center">
-                    <h4 class="font-bold text-sm truncate" x-text="item.name"></h4>
-                    <p class="text-xs text-gray-500" x-text="item.categoryName"></p>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-start gap-2">
+                      <div>
+                        <h4 class="font-bold text-sm text-gray-900 leading-snug" x-text="item.name"></h4>
+                        <p class="text-xs text-gray-400 capitalize" x-text="item.categoryName || 'Eyewear'"></p>
+                      </div>
+                      <div class="font-bold text-sm text-gray-900 text-right whitespace-nowrap" x-text="'Rs. ' + (item.price * item.quantity).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"></div>
+                    </div>
+
+                    <!-- Selected Lens Category Details (Prominent & Clear) -->
+                    <template x-if="item.lensOption === 'eyesight' || item.lensCategory">
+                      <div class="mt-2 p-2.5 bg-blue-50/90 rounded-xl border border-blue-200/80 text-xs shadow-3xs">
+                        <div class="flex items-center justify-between gap-1 text-blue-900 font-semibold">
+                          <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-600 inline-block animate-pulse"></span>
+                            <span>Lens: <strong class="font-bold text-blue-950" x-text="item.lensCategory ? item.lensCategory + ' Lens' : 'Prescription Lens'"></strong></span>
+                          </span>
+                          <span class="text-blue-700 font-bold bg-white/80 px-2 py-0.5 rounded-md border border-blue-100" x-text="'+ Rs. ' + (window.getLensPrice ? window.getLensPrice(item) : (item.lensPrice || 0)).toLocaleString()"></span>
+                        </div>
+                        
+                        <!-- Price breakdown: Frame + Lens -->
+                        <div class="mt-1.5 pt-1.5 border-t border-blue-200/50 flex items-center justify-between text-[11px] text-gray-600">
+                          <span>Frame: <strong class="text-gray-800" x-text="'Rs. ' + (window.getFramePrice ? window.getFramePrice(item) : (item.framePrice || item.price)).toLocaleString()"></strong></span>
+                          <span>Lens: <strong class="text-blue-700" x-text="'Rs. ' + (window.getLensPrice ? window.getLensPrice(item) : (item.lensPrice || 0)).toLocaleString()"></strong></span>
+                        </div>
+
+                        <!-- Prescription values badge if manual -->
+                        <template x-if="item.prescription && (item.prescription.type === 'manual' || item.prescription.type === 'enter')">
+                          <div class="mt-1.5 pt-1.5 border-t border-blue-200/50 text-[10px] text-blue-900 bg-white/70 p-1.5 rounded-lg flex flex-col gap-0.5 font-mono">
+                            <div class="flex justify-between">
+                              <span><strong>R (OD):</strong> SPH <span x-text="item.prescription.right?.sph"></span>, CYL <span x-text="item.prescription.right?.cyl"></span>, AXIS <span x-text="item.prescription.right?.axis"></span>°</span>
+                            </div>
+                            <div class="flex justify-between">
+                              <span><strong>L (OS):</strong> SPH <span x-text="item.prescription.left?.sph"></span>, CYL <span x-text="item.prescription.left?.cyl"></span>, AXIS <span x-text="item.prescription.left?.axis"></span>°</span>
+                              <span x-show="item.prescription.ipd">IPD: <span x-text="item.prescription.ipd"></span>mm</span>
+                            </div>
+                          </div>
+                        </template>
+                        <template x-if="item.prescription && item.prescription.type === 'upload'">
+                          <div class="mt-1.5 pt-1.5 border-t border-blue-200/50 text-[11px] text-blue-800 bg-white/70 px-2 py-1 rounded-lg flex items-center gap-1.5">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-600"></i>
+                            <span>Prescription slip attached</span>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+
+                    <!-- Color & Size -->
+                    <div x-show="item.selectedColor || item.selectedSize" class="text-[11px] text-gray-500 mt-1.5 flex flex-wrap gap-2">
+                      <span x-show="item.selectedColor" class="inline-flex items-center gap-1">
+                        <span class="text-gray-400">Color:</span>
+                        <strong class="text-gray-700" x-text="item.selectedColor"></strong>
+                      </span>
+                      <span x-show="item.selectedColor && item.selectedSize" class="text-gray-300">•</span>
+                      <span x-show="item.selectedSize" class="inline-flex items-center gap-1">
+                        <span class="text-gray-400">Size:</span>
+                        <strong class="text-gray-700" x-text="item.selectedSize"></strong>
+                      </span>
+                    </div>
                   </div>
-                  <div class="font-medium text-sm flex items-center" x-text="'Rs. ' + (item.price * item.quantity).toFixed(2)"></div>
                 </li>
               </template>
             </ul>

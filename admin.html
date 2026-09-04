@@ -1325,7 +1325,7 @@
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                           <p class="font-bold text-gray-900 text-sm truncate group-hover:text-black" x-text="item.name"></p>
-                          <span x-show="item.lensOption && item.lensOption !== 'no_eyesight'" class="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[9px] font-bold tracking-wider uppercase">Prescription</span>
+                          <span x-show="item.lensOption && item.lensOption !== 'no_eyesight'" class="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[9px] font-bold tracking-wider uppercase" x-text="item.lensCategory ? item.lensCategory + ' Lens' : (item.lensOption !== 'eyesight' ? item.lensOption : 'Prescription')"></span>
                         </div>
                         <p class="text-xs text-gray-500 mt-1 font-medium flex items-center flex-wrap gap-1.5">
                           <span class="font-bold text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded text-[10px]" x-text="'SKU: ' + getItemSku(item)"></span>
@@ -1729,8 +1729,7 @@ x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" style=
                       </div>
                     </template>
                     <template x-if="item.lensOption && item.lensOption !== 'no_eyesight'">
-                      <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-bold tracking-wide uppercase">
-                        Prescription Included
+                      <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-bold tracking-wide uppercase" x-text="item.lensCategory ? (item.lensCategory + ' Lens Included') : (item.lensOption !== 'eyesight' ? (item.lensOption + ' Included') : 'Prescription Included')">
                       </div>
                     </template>
                   </div>
