@@ -227,9 +227,13 @@ Alpine.store('cart', {
     this.save();
   },
   updateQuantity(identifier, qty) {
+    if (qty <= 0) {
+      this.remove(identifier);
+      return;
+    }
     const item = this.items.find(i => (i.cartItemId ? i.cartItemId === identifier : i.id === identifier));
     if (item) {
-      item.quantity = Math.max(1, qty);
+      item.quantity = qty;
       this.save();
     }
   },
