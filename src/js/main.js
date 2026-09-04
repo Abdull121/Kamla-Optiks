@@ -1505,15 +1505,27 @@ Alpine.data('adminPage', () => ({
       alert('Please select an order to print');
       return;
     }
-    const itemsHtml = (order.items || []).map((item, index) => `
+    const itemsHtml = (order.items || []).map((item, index) => {
+      const lensInfo = item.lensCategory ? `Lens: ${item.lensCategory}${item.lensPrice ? ` (+ Rs. ${Number(item.lensPrice).toLocaleString()})` : ''}` : '';
+      let rxInfo = '';
+      if (item.prescriptionData && item.prescriptionData.type === 'manual') {
+        const r = item.prescriptionData.right || {};
+        const l = item.prescriptionData.left || {};
+        const ipd = item.prescriptionData.ipd ? `IPD: ${item.prescriptionData.ipd}mm` : '';
+        rxInfo = `[OD: SPH ${r.sph || '0'} CYL ${r.cyl || '0'} AXIS ${r.axis || '0'}° | OS: SPH ${l.sph || '0'} CYL ${l.cyl || '0'} AXIS ${l.axis || '0'}°${ipd ? ' | ' + ipd : ''}]`;
+      } else if (item.prescriptionData && item.prescriptionData.type === 'upload') {
+        rxInfo = '[Prescription Card Uploaded]';
+      }
+      return `
       <tr style="border-bottom: 1px solid #e5e7eb;">
         <td style="padding: 12px 16px; color: #4b5563;">${index + 1}</td>
         <td style="padding: 12px 16px;">
           <div style="font-weight: 700; color: #111827;">${item.name || ''}</div>
-          <div style="font-size: 12px; color: #4b5563; margin-top: 4px;">
+          <div style="font-size: 12px; color: #4b5563; margin-top: 4px; line-height: 1.5;">
             ${item.selectedColor ? `Color: ${item.selectedColor} ` : ''}
             ${item.selectedSize ? `| Size: ${item.selectedSize} ` : ''}
-            ${item.lensOption && item.lensOption !== 'no_eyesight' ? `| [Prescription]` : ''}
+            ${lensInfo ? `<br><strong style="color:#2563eb;">${lensInfo}</strong>` : (item.lensOption && item.lensOption !== 'no_eyesight' ? `| [Prescription]` : '')}
+            ${rxInfo ? `<br><span style="color:#4b5563; font-size:11px;">${rxInfo}</span>` : ''}
           </div>
         </td>
         <td style="padding: 12px 16px; font-family: monospace; font-weight: 700; color: #1f2937;">${this.getItemSku(item)}</td>
@@ -1521,7 +1533,7 @@ Alpine.data('adminPage', () => ({
         <td style="padding: 12px 16px; text-align: center; font-weight: 700;">${item.qty || 1}</td>
         <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #111827;">Rs. ${((item.price || 0) * (item.qty || 1)).toLocaleString()}</td>
       </tr>
-    `).join('');
+    `}).join('');
 
     const subtotal = (order.total || 0) - (order.deliveryCharges || 0);
     const delivery = order.deliveryCharges !== undefined ? order.deliveryCharges : 250;
