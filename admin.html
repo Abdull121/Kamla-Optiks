@@ -132,174 +132,183 @@
 
           <!-- Statistics Grid (KPIs) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            <!-- KPI Card 1: Revenue -->
+            <!-- KPI Card 1: Delivered Revenue -->
             <div
-              class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between group hover:scale-[1.02] transition-transform duration-200">
+              @click="activeTab = 'orders'; ordersFilter = 'Delivered'"
+              class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between group hover:scale-[1.02] hover:shadow-md hover:border-green-200 transition-all duration-200 cursor-pointer"
+              title="Click to view Delivered orders">
               <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Delivered Revenue</p>
                 <h3 class="text-xl font-extrabold text-gray-900 mt-1"
-                  x-text="'Rs. ' + dashboardStats.revenue.toLocaleString()"></h3>
+                  x-text="'Rs. ' + (dashboardStats.revenue || 0).toLocaleString()"></h3>
                 <div class="flex items-center gap-1 mt-1 text-green-600 text-xs font-semibold">
-                  <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-                  <span>+12.4% vs last month</span>
+                  <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                  <span x-text="(dashboardStats.deliveredCount || 0) + ' order(s) delivered'"></span>
                 </div>
               </div>
               <div
-                class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center border border-green-100/50">
+                class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center border border-green-100/50 group-hover:bg-green-600 group-hover:text-white transition-colors">
                 <i data-lucide="dollar-sign" class="w-6 h-6"></i>
               </div>
             </div>
 
-            <!-- KPI Card 2: Orders -->
+            <!-- KPI Card 2: Total Orders -->
             <div
-              class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between group hover:scale-[1.02] transition-transform duration-200">
+              @click="activeTab = 'orders'; ordersFilter = 'all'"
+              class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between group hover:scale-[1.02] hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer"
+              title="Click to view all orders">
               <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total Orders</p>
-                <h3 class="text-xl font-extrabold text-gray-900 mt-1" x-text="dashboardStats.ordersCount"></h3>
+                <h3 class="text-xl font-extrabold text-gray-900 mt-1" x-text="dashboardStats.ordersCount || 0"></h3>
                 <div class="flex items-center gap-1 mt-1 text-blue-600 text-xs font-semibold">
                   <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
-                  <span>Active order queue</span>
+                  <span x-text="(dashboardStats.pendingCount || 0) + ' pending order(s)'"></span>
                 </div>
               </div>
               <div
-                class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100/50">
+                class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100/50 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i data-lucide="shopping-cart" class="w-5 h-5"></i>
               </div>
             </div>
 
             <!-- KPI Card 3: Glasses Catalog -->
             <div
-              class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between group hover:scale-[1.02] transition-transform duration-200">
+              @click="activeTab = 'products'"
+              class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between group hover:scale-[1.02] hover:shadow-md hover:border-indigo-200 transition-all duration-200 cursor-pointer"
+              title="Click to manage catalog">
               <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Eyewear Catalog</p>
-                <h3 class="text-xl font-extrabold text-gray-900 mt-1" x-text="dashboardStats.productsCount"></h3>
+                <h3 class="text-xl font-extrabold text-gray-900 mt-1" x-text="dashboardStats.productsCount || 0"></h3>
                 <div class="flex items-center gap-1 mt-1 text-indigo-600 text-xs font-semibold">
                   <i data-lucide="package" class="w-3.5 h-3.5"></i>
                   <span>Frames & accessories</span>
                 </div>
               </div>
               <div
-                class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100/50">
+                class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100/50 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                 <i data-lucide="package" class="w-5 h-5"></i>
               </div>
             </div>
 
             <!-- KPI Card 4: Low Stock Alert -->
             <div
-              class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between group hover:scale-[1.02] transition-transform duration-200">
+              @click="activeTab = 'products'"
+              class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex items-center justify-between group hover:scale-[1.02] hover:shadow-md hover:border-red-200 transition-all duration-200 cursor-pointer"
+              title="Click to manage inventory">
               <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Low Stock Frames</p>
-                <h3 class="text-xl font-extrabold text-gray-900 mt-1" x-text="dashboardStats.lowStockCount"></h3>
+                <h3 class="text-xl font-extrabold text-gray-900 mt-1" x-text="dashboardStats.lowStockCount || 0"></h3>
                 <div class="flex items-center gap-1 mt-1 text-xs font-semibold"
                   :class="dashboardStats.lowStockCount > 0 ? 'text-red-500 animate-pulse' : 'text-gray-500'">
                   <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
                   <span
-                    x-text="dashboardStats.lowStockCount > 0 ? 'Needs immediate restock' : 'Inventory levels healthy'"></span>
+                    x-text="dashboardStats.lowStockCount > 0 ? (dashboardStats.lowStockCount + ' frames need restock') : 'Inventory levels healthy'"></span>
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl flex items-center justify-center border"
-                :class="dashboardStats.lowStockCount > 0 ? 'bg-red-50 text-red-500 border-red-100/50' : 'bg-gray-50 text-gray-400 border-gray-100'">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center border group-hover:shadow transition-all"
+                :class="dashboardStats.lowStockCount > 0 ? 'bg-red-50 text-red-500 border-red-100/50 group-hover:bg-red-500 group-hover:text-white' : 'bg-gray-50 text-gray-400 border-gray-100'">
                 <i data-lucide="alert-circle" class="w-5 h-5"></i>
               </div>
             </div>
           </div>
 
-          <!-- Dashboard Charts & Detail Lists Grid -->
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-
-            <!-- Left: Recent Orders List (3/5 width) -->
-            <div
-              class="lg:col-span-3 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
-              <div>
-                <div class="px-6 py-4.5 border-b border-gray-100 flex items-center justify-between">
+          <!-- Full Width Recent Orders Container (Top Eyewear Models removed) -->
+          <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+            <div class="px-6 py-4.5 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 bg-gray-50/30">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                  <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                </div>
+                <div>
                   <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Recent Orders</h3>
-                  <a href="#orders" @click.prevent="activeTab = 'orders'"
-                    class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer">View
-                    All Orders →</a>
-                </div>
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="bg-gray-50/50 text-gray-500 font-semibold text-xs border-b border-gray-100">
-                      <tr>
-                        <th class="px-6 py-3.5">Order ID</th>
-                        <th class="px-6 py-3.5">Customer</th>
-                        <th class="px-6 py-3.5">Total</th>
-                        <th class="px-6 py-3.5">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                      <template x-for="order in recentOrders" :key="order.id">
-                        <tr class="hover:bg-gray-50/50 transition-colors duration-150 cursor-pointer"
-                          @click="openOrderModal(order)">
-                          <td class="px-6 py-4 font-bold text-gray-900" x-text="order.id"></td>
-                          <td class="px-6 py-4">
-                            <p class="font-bold text-gray-800 leading-tight" x-text="order.customerName"></p>
-                            <p class="text-[10px] text-gray-400 mt-0.5" x-text="order.email"></p>
-                          </td>
-                          <td class="px-6 py-4 font-semibold text-gray-900"
-                            x-text="'Rs. ' + order.total.toLocaleString()"></td>
-                          <td class="px-6 py-4">
-                            <span
-                              class="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider inline-flex items-center border"
-                              :class="{
-                                      'bg-yellow-50 text-yellow-700 border-yellow-100': order.status === 'Pending',
-                                      'bg-blue-50 text-blue-700 border-blue-100': order.status === 'Processing',
-                                      'bg-indigo-50 text-indigo-700 border-indigo-100': order.status === 'Shipped',
-                                      'bg-green-50 text-green-700 border-green-100': order.status === 'Delivered',
-                                      'bg-red-50 text-red-700 border-red-100': order.status === 'Cancelled'
-                                    }" x-text="order.status"></span>
-                          </td>
-                        </tr>
-                      </template>
-                    </tbody>
-                  </table>
+                  <p class="text-[11px] text-gray-500 mt-0.5">Latest customer purchases and order requests</p>
                 </div>
               </div>
-              <div class="px-6 py-3 border-t border-gray-50 bg-gray-50/20 text-center">
-                <p class="text-[10px] text-gray-400 font-medium">Click on any order to view details and process
-                  fulfillment.</p>
+              <div class="flex items-center gap-2">
+                <span class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-medium"
+                  x-text="(recentOrders ? recentOrders.length : 0) + ' latest order(s)'"></span>
+                <a href="#orders" @click.prevent="activeTab = 'orders'"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-black hover:bg-neutral-800 rounded-lg transition-colors shadow-sm cursor-pointer">
+                  <span>View All Orders</span>
+                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
               </div>
             </div>
 
-            <!-- Right: Top Selling Products (2/5 width) -->
-            <div
-              class="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
-              <div>
-                <div class="px-6 py-4.5 border-b border-gray-100">
-                  <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Top Eyewear Models</h3>
-                </div>
-                <div class="p-4 divide-y divide-gray-100">
-                  <template x-for="product in topSellingProducts" :key="product.id">
-                    <div class="py-3 flex items-center gap-3 first:pt-0 last:pb-0">
-                      <div
-                        class="w-10 h-10 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0 shadow-3xs">
-                        <img :src="product.image || 'https://via.placeholder.com/150'"
-                          class="w-full h-full object-cover">
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="font-bold text-gray-900 text-sm truncate" x-text="product.name"></p>
-                        <p class="text-[10px] text-gray-400 mt-0.5 font-medium" x-text="product.categoryName"></p>
-                      </div>
-                      <div class="text-right">
-                        <p class="font-bold text-gray-900 text-sm"
-                          x-text="'Rs. ' + (product.discountPrice || product.price).toLocaleString()"></p>
-                        <div
-                          class="flex items-center justify-end gap-0.5 mt-0.5 text-yellow-500 text-[10px] font-semibold">
-                          <i data-lucide="star" class="w-2.5 h-2.5 fill-current"></i>
-                          <span x-text="product.rating"></span>
-                          
-                        </div>
-                      </div>
-                    </div>
+            <!-- Table or Empty State -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm whitespace-nowrap" x-show="recentOrders && recentOrders.length > 0">
+                <thead class="bg-gray-50/75 text-gray-500 font-semibold text-xs border-b border-gray-100 uppercase tracking-wider">
+                  <tr>
+                    <th class="px-6 py-3.5">Order ID</th>
+                    <th class="px-6 py-3.5">Date</th>
+                    <th class="px-6 py-3.5">Customer</th>
+                    <th class="px-6 py-3.5">Contact</th>
+                    <th class="px-6 py-3.5">Items</th>
+                    <th class="px-6 py-3.5">Total Amount</th>
+                    <th class="px-6 py-3.5">Status</th>
+                    <th class="px-6 py-3.5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <template x-for="order in recentOrders" :key="order.id">
+                    <tr class="hover:bg-blue-50/30 transition-colors duration-150 cursor-pointer group"
+                      @click="openOrderModal(order)">
+                      <td class="px-6 py-4">
+                        <span class="font-mono font-bold text-gray-900 group-hover:text-blue-600 transition-colors" x-text="order.id"></span>
+                      </td>
+                      <td class="px-6 py-4 text-xs text-gray-500" x-text="order.date || 'Recent'"></td>
+                      <td class="px-6 py-4">
+                        <p class="font-bold text-gray-800 leading-tight" x-text="order.customerName || 'Customer'"></p>
+                        <p class="text-[11px] text-gray-400 mt-0.5" x-text="order.email || 'No email'"></p>
+                      </td>
+                      <td class="px-6 py-4 text-xs text-gray-600 font-medium" x-text="order.phone || '—'"></td>
+                      <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700"
+                          x-text="(order.items ? order.items.length : 1) + ' item(s)'"></span>
+                      </td>
+                      <td class="px-6 py-4 font-bold text-gray-900"
+                        x-text="'Rs. ' + (parseFloat(order.total) || 0).toLocaleString()"></td>
+                      <td class="px-6 py-4">
+                        <span
+                          class="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider inline-flex items-center border shadow-3xs"
+                          :class="{
+                            'bg-yellow-50 text-yellow-700 border-yellow-200': order.status === 'Pending',
+                            'bg-blue-50 text-blue-700 border-blue-200': order.status === 'Processing',
+                            'bg-indigo-50 text-indigo-700 border-indigo-200': order.status === 'Shipped',
+                            'bg-green-50 text-green-700 border-green-200': order.status === 'Delivered',
+                            'bg-red-50 text-red-700 border-red-200': order.status === 'Cancelled'
+                          }" x-text="order.status"></span>
+                      </td>
+                      <td class="px-6 py-4 text-right">
+                        <button type="button" @click.stop="openOrderModal(order)"
+                          class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-black hover:text-white rounded-lg transition-colors">
+                          <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                          <span>Details</span>
+                        </button>
+                      </td>
+                    </tr>
                   </template>
+                </tbody>
+              </table>
+
+              <!-- Empty State -->
+              <div x-show="!recentOrders || recentOrders.length === 0" class="py-14 px-6 text-center">
+                <div class="w-14 h-14 bg-gray-100 text-gray-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <i data-lucide="inbox" class="w-7 h-7"></i>
                 </div>
-              </div>
-              <div class="px-6 py-3 border-t border-gray-50 bg-gray-50/20 text-center">
-                <p class="text-[10px] text-gray-400 font-medium">Ranked by overall rating & customer engagement score.
-                </p>
+                <h4 class="text-sm font-bold text-gray-800">No Orders Found</h4>
+                <p class="text-xs text-gray-400 mt-1 max-w-sm mx-auto">When new customer orders are placed, they will show up here automatically in real time.</p>
               </div>
             </div>
 
+            <!-- Footer Note -->
+            <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+              <p class="text-[11px] text-gray-500 font-medium">Click on any order row or "Details" to inspect customer prescription, order items, and manage fulfillment status.</p>
+              <a href="#orders" @click.prevent="activeTab = 'orders'" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                Open Orders Manager →
+              </a>
+            </div>
           </div>
 
         </div>

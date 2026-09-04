@@ -2,12 +2,12 @@ import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
 import { createIcons } from 'lucide';
 import {
-  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter, Glasses, Droplet, Droplets, Scan, ScanEye
+  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, CheckCircle, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter, Glasses, Droplet, Droplets, Scan, ScanEye, Inbox
 } from 'lucide';
 import logoImgUrl from '../assets/kamla-optics-logo.png';
 
 export const lucideIcons = {
-  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter, Glasses, Droplet, Droplets, Scan, ScanEye
+  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, CheckCircle, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter, Glasses, Droplet, Droplets, Scan, ScanEye, Inbox
 };
 
 window.lucide = {
@@ -992,27 +992,23 @@ Alpine.data('adminPage', () => ({
   },
   
   get dashboardStats() {
-    const deliveredRevenue = this.orders
-      .filter(o => o.status === 'Delivered')
-      .reduce((sum, o) => sum + o.total, 0);
-    const lowStock = this.products.filter(p => p.stockQuantity < 15).length;
+    const deliveredOrders = this.orders.filter(o => o.status && o.status.toString().trim().toLowerCase() === 'delivered');
+    const deliveredRevenue = deliveredOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+    const pendingOrders = this.orders.filter(o => o.status && o.status.toString().trim().toLowerCase() === 'pending');
+    const lowStock = this.products.filter(p => p.stockQuantity !== undefined && p.stockQuantity !== null && Number(p.stockQuantity) < 15).length;
     
     return {
       revenue: deliveredRevenue,
+      deliveredCount: deliveredOrders.length,
       ordersCount: this.orders.length,
+      pendingCount: pendingOrders.length,
       productsCount: this.products.length,
       lowStockCount: lowStock
     };
   },
   
   get recentOrders() {
-    return this.orders.slice(0, 5);
-  },
-  
-  get topSellingProducts() {
-    return [...this.products]
-      .sort((a, b) => b.reviewsCount * b.rating - a.reviewsCount * a.rating)
-      .slice(0, 4);
+    return this.orders.slice(0, 10);
   },
   
   openModal(product = null) {
