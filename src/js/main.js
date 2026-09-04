@@ -2033,6 +2033,10 @@ function updateActiveNavLink(url) {
   const currentPath = new URL(url, window.location.origin).pathname;
 
   document.querySelectorAll('header nav a').forEach(a => {
+    // Preserve purple highlight for Under 1999 and Under 2999
+    if (a.href.includes('under-1999') || a.href.includes('under-2999')) {
+      return;
+    }
     const linkPath = new URL(a.href, window.location.origin).pathname;
     if (linkPath === currentPath) {
       a.classList.add('text-accent');

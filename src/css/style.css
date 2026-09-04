@@ -89,4 +89,23 @@
   header.glass-dark .hover\:bg-gray-100:hover {
     background-color: rgba(255, 255, 255, 0.1) !important;
   }
+
+  /* Highlight Under 1999 and Under 2999 in vivid purple on desktop navbar */
+  header.glass-dark a[href*="under-1999"],
+  header.glass-dark a[href*="under-2999"],
+  header.glass-dark a.text-purple-700,
+  header.glass-dark a.nav-purple,
+  a.nav-purple {
+    color: #c084fc !important;
+    font-weight: 700 !important;
+  }
+
+  header.glass-dark a[href*="under-1999"]:hover,
+  header.glass-dark a[href*="under-2999"]:hover,
+  header.glass-dark a.text-purple-700:hover,
+  header.glass-dark a.nav-purple:hover,
+  a.nav-purple:hover {
+    color: #f3e8ff !important;
+    text-shadow: 0 0 10px rgba(192, 132, 252, 0.6);
+  }
 }
