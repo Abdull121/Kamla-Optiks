@@ -2,9 +2,22 @@ import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
 import { createIcons } from 'lucide';
 import {
-  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter
+  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter, Glasses, Droplet, Droplets, Scan, ScanEye
 } from 'lucide';
 import logoImgUrl from '../assets/kamla-optics-logo.png';
+
+export const lucideIcons = {
+  ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter, Glasses, Droplet, Droplets, Scan, ScanEye
+};
+
+window.lucide = {
+  createIcons: (options = {}) => {
+    return createIcons({
+      icons: lucideIcons,
+      ...options
+    });
+  }
+};
 window.hideGlobalLoader = function() {
   const loader = document.getElementById('full-page-loader');
   if (loader) {
@@ -1985,7 +1998,7 @@ async function performNavigation(url, main, pushState) {
           updateActiveNavLink(url);
           window.Alpine.initTree(newMain);
           createIcons({
-            icons: { ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter }
+            icons: lucideIcons
           });
         });
       } else {
@@ -1994,7 +2007,7 @@ async function performNavigation(url, main, pushState) {
         updateActiveNavLink(url);
         window.Alpine.initTree(newMain);
         createIcons({
-          icons: { ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter }
+          icons: lucideIcons
         });
         requestAnimationFrame(() => {
           newMain.style.transition = 'opacity 150ms ease';
@@ -2064,14 +2077,18 @@ window.addEventListener('popstate', () => {
   navigateTo(window.location.href, false);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+function initLucideIcons() {
   updateActiveNavLink(window.location.href);
   createIcons({
-    icons: {
-      ShoppingCart, Search, Menu, X, User, Heart, ChevronRight, ChevronLeft, ChevronDown, Star, Check, ShieldCheck, Truck, ArrowRight, Package, MapPin, LogOut, PackageX, Plus, Loader2, Phone, Mail, Clock, Eye, Edit2, Trash2, Construction, CreditCard, Printer, DollarSign, TrendingUp, AlertCircle, Users, LayoutDashboard, List, Tag, Settings, Home, ShoppingBag, Sun, FileText, Info, Filter
-    }
+    icons: lucideIcons
   });
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLucideIcons);
+} else {
+  initLucideIcons();
+}
 
 
 window.formatDescription = function(text) {
