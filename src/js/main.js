@@ -697,6 +697,16 @@ Alpine.data('checkoutPage', () => ({
               let orders = saved ? JSON.parse(saved) : [];
               orders.unshift(newOrder);
               localStorage.setItem('kamal_orders', JSON.stringify(orders));
+
+              const userProfile = {
+                fullName: (this.form.firstName + ' ' + this.form.lastName).trim(),
+                firstName: this.form.firstName.trim(),
+                lastName: this.form.lastName.trim(),
+                email: this.form.email.trim(),
+                phone: this.form.phone.trim(),
+                address: (this.form.address + ', ' + this.form.city + (this.form.zip ? ' ' + this.form.zip : '')).trim()
+              };
+              localStorage.setItem('kamal_user_profile', JSON.stringify(userProfile));
             } catch (e) {
               console.error("Error saving order tracking data:", e);
             }
@@ -741,6 +751,16 @@ Alpine.data('checkoutPage', () => ({
         let orders = saved ? JSON.parse(saved) : []; // defaultOrders not available in this scope, so use []
         orders.unshift(newOrder);
         localStorage.setItem('kamal_orders', JSON.stringify(orders));
+
+        const userProfile = {
+          fullName: (this.form.firstName + ' ' + this.form.lastName).trim(),
+          firstName: this.form.firstName.trim(),
+          lastName: this.form.lastName.trim(),
+          email: this.form.email.trim(),
+          phone: this.form.phone.trim(),
+          address: (this.form.address + ', ' + this.form.city + (this.form.zip ? ' ' + this.form.zip : '')).trim()
+        };
+        localStorage.setItem('kamal_user_profile', JSON.stringify(userProfile));
       } catch (e) {
         console.error("Error saving order:", e);
       }
@@ -765,22 +785,71 @@ Alpine.data('checkoutPage', () => ({
 
 Alpine.data('dashboardPage', () => {
   let hash = window.location.hash.replace('#', '');
-  if (!['orders', 'wishlist', 'profile', 'addresses'].includes(hash)) {
-    hash = 'orders';
+  if (!['profile', 'wishlist'].includes(hash)) {
+    hash = 'profile';
   }
   return {
     activeTab: hash,
-    get mockOrders() {
+    get user() {
       try {
+        const profile = localStorage.getItem('kamal_user_profile');
+        if (profile) {
+          const p = JSON.parse(profile);
+          if (p && (p.fullName || p.email)) {
+            const initials = (p.fullName || 'User')
+              .split(' ')
+              .filter(Boolean)
+              .map(n => n[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2) || 'U';
+            return {
+              fullName: p.fullName || 'Customer',
+              firstName: p.firstName || '',
+              lastName: p.lastName || '',
+              email: p.email || 'No email provided',
+              phone: p.phone || '',
+              address: p.address || '',
+              initials: initials,
+              hasOrder: true
+            };
+          }
+        }
         const saved = localStorage.getItem('kamal_orders');
-        if (saved) {
-          return JSON.parse(saved);
-        } else {
-          return [];
+        const orders = saved ? JSON.parse(saved) : [];
+        if (orders.length > 0 && orders[0].customerName) {
+          const name = (orders[0].customerName || '').trim();
+          const initials = name
+            .split(' ')
+            .filter(Boolean)
+            .map(n => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) || 'U';
+          return {
+            fullName: name || 'Customer',
+            firstName: name.split(' ')[0] || '',
+            lastName: name.split(' ').slice(1).join(' ') || '',
+            email: orders[0].email || 'No email provided',
+            phone: orders[0].phone || '',
+            address: orders[0].address || '',
+            initials: initials,
+            hasOrder: true
+          };
         }
       } catch (e) {
-        return [];
+        console.error("Error loading user profile:", e);
       }
+      return {
+        fullName: 'Guest Customer',
+        firstName: 'Guest',
+        lastName: '',
+        email: 'No order placed yet',
+        phone: '',
+        address: '',
+        initials: 'GC',
+        hasOrder: false
+      };
     },
     logout() {
       alert('Logged out');
@@ -795,7 +864,7 @@ Alpine.data('dashboardPage', () => {
         }
       }, 100);
     }
-  }
+  };
 });
 
 Alpine.data('adminPage', () => ({
